@@ -9,7 +9,7 @@ func main() {
     // Init window
     rl.InitWindow(800, 450, "Game")
 	defer rl.CloseWindow()
-   
+
     rl.SetTargetFPS(60)
 	for !rl.WindowShouldClose() {
 		// Updating

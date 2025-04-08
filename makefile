@@ -1,5 +1,5 @@
 all:
-	go build -o bin/game **/*.go
+	go build -o bin/game .
 
 run:
-	go build -o bin/game **/*.go; ./bin/game
+	go build -o bin/game . ; ./bin/game
