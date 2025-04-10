@@ -28,14 +28,10 @@ func NewSprite(path string) Sprite {
 	sprite.SrcPosition = rl.NewVector2(0, 0)
 	sprite.SrcSize = rl.NewVector2(16.0, 16.0)
 
-	sprite.DstPosition = rl.NewVector2(0, 0)
+	sprite.DstPosition = rl.NewVector2(0, -50)
 	sprite.DstSize = rl.NewVector2(16.0 * 4, 16.0 * 4)
 
     return sprite
-}
-
-func (sprite *Sprite) Init(path string) {
-    *sprite = NewSprite(path)
 }
 
 func (sprite *Sprite) Destroy() {

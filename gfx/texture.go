@@ -24,16 +24,22 @@ func TextureDestroy(texture rl.Texture2D) {
 }
 
 func TextureRender(texture rl.Texture2D, 
-                    src_pos rl.Vector2, src_size rl.Vector2,
-                    dst_pos rl.Vector2, dst_size rl.Vector2) {
+                    srcPosition rl.Vector2, srcSize rl.Vector2,
+                    dstPosition rl.Vector2, dstSize rl.Vector2) {
     // Create source rectangle
-    src_rect := rl.NewRectangle(src_pos.X, src_pos.Y, src_size.X, src_size.Y)
+    srcRectangle := rl.NewRectangle(srcPosition.X, srcPosition.Y, srcSize.X, srcSize.Y)
 
     // Create destination rectangle
-    dst_rect := rl.NewRectangle(dst_pos.X, dst_pos.Y, dst_size.X, dst_size.Y)
+    dstRectangle := rl.NewRectangle(dstPosition.X, dstPosition.Y, dstSize.X, dstSize.Y)
 
     // Set origin to default constructor (no need to modify it)
     origin := rl.NewVector2(0, 0)
 
-    rl.DrawTexturePro(texture, src_rect, dst_rect, origin, 0.0, rl.White)
+	// Rotation in degrees
+	rotation := float32(0.0)
+
+	// Color
+	color := rl.White
+
+    rl.DrawTexturePro(texture, srcRectangle, dstRectangle, origin, rotation, color)
 }
