@@ -22,6 +22,7 @@ bin/*
 
 # Go mod
 go.mod
+go.sum
 
 # Go workspace file
 go.work
