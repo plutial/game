@@ -5,7 +5,7 @@ import (
     rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-func TextureInit(path string) rl.Texture2D {
+func NewTexture(path string) rl.Texture2D {
     // Load texture
     texture := rl.LoadTexture(path)
 
@@ -18,12 +18,12 @@ func TextureInit(path string) rl.Texture2D {
     return texture
 }
 
-func TextureDestroy(texture rl.Texture2D) {
+func DestroyTexture(texture rl.Texture2D) {
     // Unload texture for memory
     rl.UnloadTexture(texture)
 }
 
-func TextureRender(texture rl.Texture2D, 
+func RenderTexture(texture rl.Texture2D, 
                     srcPosition rl.Vector2, srcSize rl.Vector2,
                     dstPosition rl.Vector2, dstSize rl.Vector2) {
     // Create source rectangle

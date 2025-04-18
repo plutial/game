@@ -10,25 +10,23 @@ type Sprite struct {
 	Texture rl.Texture2D
 
 	// The source co-ordinates and size
-	SrcPosition rl.Vector2
-	SrcSize     rl.Vector2
+	SrcPosition, SrcSize rl.Vector2
 
 	// The destination co-ordinates and size
-	DstPosition rl.Vector2
-	DstSize     rl.Vector2
+	DstPosition, DstSize rl.Vector2
 }
 
-func NewSprite(path string) Sprite {
+func NewSprite(texture rl.Texture2D) Sprite {
     var sprite Sprite
 
 	// Load texture
-	sprite.Texture = TextureInit(path)
+	sprite.Texture = texture
 
 	// Set default position and size values
 	sprite.SrcPosition = rl.NewVector2(0, 0)
 	sprite.SrcSize = rl.NewVector2(16.0, 16.0)
 
-	sprite.DstPosition = rl.NewVector2(0, -50)
+	sprite.DstPosition = rl.NewVector2(0, 0)
 	sprite.DstSize = rl.NewVector2(16.0 * 4, 16.0 * 4)
 
     return sprite
@@ -36,9 +34,9 @@ func NewSprite(path string) Sprite {
 
 func (sprite *Sprite) Destroy() {
 	// Unload texture
-	TextureDestroy(sprite.Texture)
+	DestroyTexture(sprite.Texture)
 }
 
 func (sprite *Sprite) Render() {
-	TextureRender(sprite.Texture, sprite.SrcPosition, sprite.SrcSize, sprite.DstPosition, sprite.DstSize)
+	RenderTexture(sprite.Texture, sprite.SrcPosition, sprite.SrcSize, sprite.DstPosition, sprite.DstSize)
 }
