@@ -3,12 +3,13 @@ package main
 import (
 	// Raylib
 	rl "github.com/gen2brain/raylib-go/raylib"
-	//"fmt"
+
+	"fmt"
 
 	// Game packages
 	"github.com/plutial/game/ecs"
 	"github.com/plutial/game/gfx"
-	/*"github.com/plutial/game/physics"*/
+	//"github.com/plutial/game/physics"
 )
 
 func main() {
@@ -19,10 +20,9 @@ func main() {
 	world := ecs.NewWorld()
 	ecs.RegisterComponent[gfx.Sprite](&world)
 
-	//texture := gfx.NewTexture("assets/res/image.png")
-	//sprite := gfx.NewSprite(texture)
-	entity := uint32(0)
-	ecs.AddComponent[gfx.Sprite](&world, entity)
+	spriteComponent := ecs.GetComponent[gfx.Sprite](&world)
+	texture := gfx.NewTexture("assets/res/image.png")
+	*spriteComponent = append(*spriteComponent, gfx.NewSprite(texture))
 
 	rl.SetTargetFPS(60)
 	for !rl.WindowShouldClose() {

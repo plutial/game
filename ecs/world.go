@@ -8,13 +8,17 @@ type World struct {
 	// Entity count
 	Size uint32
 
-	// Components
-	ComponentPool map[reflect.Type]any
+	// Component index
+	ComponentIndex map[reflect.Type]int
+
+	// Component storage
+	ComponentPool []any
 }
 
 func NewWorld() World {
 	world := World {}
-	world.ComponentPool = make(map[reflect.Type]any)
+	world.ComponentIndex = make(map[reflect.Type]int)
+	world.ComponentPool = make([]any, 0)
 
 	return world
 }

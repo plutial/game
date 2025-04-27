@@ -1,54 +1,37 @@
 package ecs
 
 import (
+	// "errors"
 	"fmt"
-	"errors"
 	"reflect"
 )
 
+// Get the type of a generic type interface as reflect.Type variable
 func getType[T any]() reflect.Type {
-	// Create a temporary slice
-	temp := make([]T, 0)
+	var temp T
 	return reflect.TypeOf(temp)
 }
 
-func getComponentSlice[T any](world World) ([]T, error) {
-	// Get the component slice
-	component, ok := world.ComponentPool[getType[T]()].([]T)
+// Register a component with the component type
+func RegisterComponent[T any](world *World) {
+	// Assign the component index to the component
+	componentIndex := len(world.ComponentIndex)
+	world.ComponentIndex[getType[T]()] = componentIndex
 
-	// Check if the component exists
-	if !ok {
-		return make([]T, 0, 0), errors.New("Component type not found")
-	}
+	// Create a slice for the component at the given index
+	componentSlice := make([]T, 0)
+	world.ComponentPool = append(world.ComponentPool, &componentSlice)
 
-	return component, nil
+	// Debug
+	fmt.Println(world.ComponentPool)
+	fmt.Println(world.ComponentIndex)
+	fmt.Println(len(world.ComponentPool))
 }
 
-func RegisterComponent[T any](world *World) []T {
-	// Create an array of T and add it to the component pool
-	world.ComponentPool[getType[T]()] = make([]T, 0)
-	return world.ComponentPool[getType[T]()].([]T)
-}
+func GetComponent[T any](world *World) *[]T {
+	// Get the component index
+	componentIndex := world.ComponentIndex[getType[T]()]
 
-func AddComponent[T any](world *World, entity uint32) {
-	component, err := getComponentSlice[T](*world)
-	
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	// If the entity goes past the avaible slice, expand the slice
-	if cap(component) > int(entity) {
-		buffer := make([]T, cap(component) - int(entity), cap(component) - int(entity))
-		component = append(component, buffer...)
-	}
-
-	// Update changes
-	world.ComponentPool[getType[T]()] = component
-}
-
-func GetComponent[T any](world *World, entity uint32) *T {
-	// Return the address of the component
-	component := (world.ComponentPool[getType[T]()].([]T))
-	return &component
+	// Return the address of the slice
+	return world.ComponentPool[componentIndex].(*[]T)
 }
