@@ -3,7 +3,10 @@ package main
 import (
 	// Raylib
 	rl "github.com/gen2brain/raylib-go/raylib"
-	//"fmt"
+
+	// "fmt"
+	// "reflect"
+	// "log"
 
 	// Game packages
 	"github.com/plutial/game/ecs"
@@ -16,26 +19,27 @@ func main() {
 	rl.InitWindow(800, 450, "Game")
 	defer rl.CloseWindow()
 
+	// Create the game world
 	world := ecs.NewWorld()
+
+	// Register components
 	ecs.RegisterComponent[gfx.Sprite](&world)
 	ecs.RegisterComponent[physics.Body](&world)
 	ecs.RegisterComponent[physics.Force](&world)
 
-	spriteComponent := ecs.GetComponent[gfx.Sprite](&world)
-	texture := gfx.NewTexture("assets/res/image.png")
-	*spriteComponent = append(*spriteComponent, gfx.NewSprite(texture))
-
 	rl.SetTargetFPS(60)
 	for !rl.WindowShouldClose() {
 		// Updating
+		world.Update()
 
 		// Rendering
 		rl.BeginDrawing()
 
-		// Clear renderer as white background
+		// Clear renderer with a white background
 		rl.ClearBackground(rl.RayWhite)
 
 		// Render entities
+		world.Render()
 
 		// End renderering and swap buffers
 		rl.EndDrawing()

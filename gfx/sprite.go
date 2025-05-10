@@ -27,7 +27,7 @@ func NewSprite(texture rl.Texture2D) Sprite {
 	sprite.SrcSize = rl.NewVector2(16.0, 16.0)
 
 	sprite.DstPosition = rl.NewVector2(0, 0)
-	sprite.DstSize = rl.NewVector2(16.0 * 4, 16.0 * 4)
+	sprite.DstSize = rl.NewVector2(16.0, 16.0)
 
     return sprite
 }
