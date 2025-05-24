@@ -3,3 +3,6 @@ all:
 
 run:
 	go build -o bin/game . && ./bin/game
+
+clean:
+	rm -r bin

@@ -10,5 +10,5 @@ type Force struct {
 }
 
 func NewForce(velocity rl.Vector2, acceleration rl.Vector2) Force {
-	return Force { velocity, acceleration }
+	return Force{velocity, acceleration}
 }

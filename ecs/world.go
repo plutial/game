@@ -1,12 +1,18 @@
 package ecs
 
 import (
-	"reflect"
 	"log"
+	"reflect"
+	"fmt"
+	// "math"
+	// "sort"
+
+	// Raylib
+	rl "github.com/gen2brain/raylib-go/raylib"
 
 	// Game packages
-	"github.com/plutial/game/physics"
 	"github.com/plutial/game/gfx"
+	"github.com/plutial/game/physics"
 )
 
 // Get the type of a generic type interface as reflect.Type variable
@@ -34,6 +40,21 @@ func NewWorld() World {
 	world := World {}
 	world.EntityHasComponent = make(map[int]map[reflect.Type]bool)
 	world.ComponentPool = make(map[reflect.Type]any)
+		
+	// Register components
+	RegisterComponent[gfx.Sprite](&world)
+	RegisterComponent[physics.Body](&world)
+	RegisterComponent[physics.Force](&world)
+
+	// Tags
+	RegisterComponent[PlayerTag](&world)
+	RegisterComponent[TileTag](&world)
+
+	// Load maps
+	world.LoadMap("assets/maps/map0.json")
+
+	// Create the player
+	world.NewPlayer()
 
 	return world
 }
@@ -62,11 +83,48 @@ func (world *World) NewEntity() int {
 	return id
 }
 
+func (world *World) DeleteEntity(id int) {
+	delete(world.EntityHasComponent, id)
+}
+
+func (world *World) UpdateInput() {
+	// Get the player id
+	entities := GetEntities[PlayerTag](world)
+	playerId := entities[0]
+
+	force, err := GetComponent[physics.Force](world, playerId)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	speed := float32(4)
+
+	if rl.IsKeyDown(rl.KeyA) {
+		force.Velocity.X -= speed
+	}
+
+	if rl.IsKeyDown(rl.KeyD) {
+		force.Velocity.X += speed
+	}
+
+	if rl.IsKeyDown(rl.KeyW) {
+		force.Velocity.Y -= speed
+	}
+
+	if rl.IsKeyDown(rl.KeyS) {
+		force.Velocity.Y += speed
+	}
+}
+
 func (world *World) UpdatePhysics() {
 	// Get all the entities which have the body component and the force component
 	entities := GetEntities2[physics.Body, physics.Force](world)
 
-	for id := range entities {
+	// Get all tiles
+	tiles := GetEntities[TileTag](world)
+
+	for _, id := range entities {
 		// Get the components
 		body, err := GetComponent[physics.Body](world, id)
 
@@ -80,9 +138,41 @@ func (world *World) UpdatePhysics() {
 			log.Fatal(err)
 		}
 
+		// Handle tile collisions
+		for tileId := range tiles {
+			tileBody, _ := GetComponent[physics.Body](world, tileId)
+			
+			collision := physics.BodyBroadPhase(*body, *tileBody, force.Velocity)
+			
+			if !collision {
+				continue
+			}
+
+			collision, velocityResolve := physics.BodyDynamicVsBodyResolve(*body, *tileBody, force.Velocity)
+
+			
+			if collision {
+				force.Velocity = velocityResolve
+			}
+
+			if rl.IsKeyPressed(rl.KeySpace) && collision {
+				fmt.Println(collision)
+			}
+		}
+
+
+		if rl.IsKeyPressed(rl.KeySpace) {
+			fmt.Println(body.Position)
+			fmt.Println(force.Velocity)
+			fmt.Println("")
+		}
+
 		// Update the body position
 		body.Position.X += force.Velocity.X
 		body.Position.Y += force.Velocity.Y
+
+		// Reset the velocity after calculation
+		force.Velocity = rl.NewVector2(0, 0)
 	}
 }
 
@@ -90,7 +180,7 @@ func (world *World) UpdateSprite() {
 	// Get all the entities which have the sprite component and the body component
 	entities := GetEntities2[gfx.Sprite, physics.Body](world)
 
-	for id := range entities {
+	for _, id := range entities {
 		// Get the components
 		sprite, err := GetComponent[gfx.Sprite](world, id)
 
@@ -105,19 +195,25 @@ func (world *World) UpdateSprite() {
 		}
 
 		// Update the position of the sprite
-		*&sprite.DstPosition = *&body.Position
+		sprite.DstPosition = body.Position
 	}
 }
 
 func (world *World) Update() {
-	world.UpdateSprite()
+	// Take in input
+	world.UpdateInput()
+
+	// Update the physics world
 	world.UpdatePhysics()
+
+	// Update the sprite after all the physics is finished
+	world.UpdateSprite()
 }
 
 func (world *World) Render() {
 	entities := GetEntities[gfx.Sprite](world)
 	
-	for id := range entities {
+	for _, id := range entities {
 		sprite, err := GetComponent[gfx.Sprite](world, id)
 
 		if err != nil {

@@ -61,8 +61,9 @@ func AddComponent[T any](world *World, id int) (*T, error) {
 	world.EntityHasComponent[id][getType[T]()] = true
 
 	// If the id is out of range of the slice, then double size of the slice
-	if cap(*componentSlice) <= id {
-		*componentSlice = append(*componentSlice, make([]T, cap(*componentSlice))...)
+	// len is used instead of cap as cap is sometimes inconsistent
+	for len(*componentSlice) <= id {
+		*componentSlice = append(*componentSlice, make([]T, len(*componentSlice))...)
 	}
 	
 	// Return the address of the component

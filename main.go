@@ -4,28 +4,20 @@ import (
 	// Raylib
 	rl "github.com/gen2brain/raylib-go/raylib"
 
-	// "fmt"
-	// "reflect"
-	// "log"
-
 	// Game packages
 	"github.com/plutial/game/ecs"
-	"github.com/plutial/game/gfx"
-	"github.com/plutial/game/physics"
 )
 
 func main() {
+	// Disable logging
+	rl.SetTraceLogLevel(rl.LogWarning)
+
 	// Init window
 	rl.InitWindow(800, 450, "Game")
 	defer rl.CloseWindow()
 
 	// Create the game world
 	world := ecs.NewWorld()
-
-	// Register components
-	ecs.RegisterComponent[gfx.Sprite](&world)
-	ecs.RegisterComponent[physics.Body](&world)
-	ecs.RegisterComponent[physics.Force](&world)
 
 	rl.SetTargetFPS(60)
 	for !rl.WindowShouldClose() {

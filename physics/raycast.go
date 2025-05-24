@@ -1,10 +1,13 @@
 package physics
 
 import (
+	"math"
+
 	// Raylib
     rl "github.com/gen2brain/raylib-go/raylib"
 )
 
+// Where hit time is the time taken to hit the body (hitTime ranges from 0.0 to 1.0)
 func RayVsBody(start rl.Vector2, velocity rl.Vector2, body Body) (collision bool, hitTime float32, contactNormal rl.Vector2) {
     // Calculate near and far distance
     near := rl.NewVector2(0, 0)
@@ -22,6 +25,17 @@ func RayVsBody(start rl.Vector2, velocity rl.Vector2, body Body) (collision bool
     if near.Y > far.Y {
         near.Y, far.Y = far.Y, near.Y
     }
+
+	// Check if the calculation is "invalid" (NaN values)
+	// This is a fix for a specific case
+	// Do not forget to implement this in other projects, it causes lots of problems
+	if math.IsNaN(float64(near.X)) || math.IsNaN(float64(near.Y)) {
+		return false, 1.0, rl.NewVector2(0, 0)
+	}
+
+	if math.IsNaN(float64(far.X)) || math.IsNaN(float64(far.Y)) {
+		return false, 1.0, rl.NewVector2(0, 0)
+	}
 
     // Check if the ray goes through the body
     if near.X > far.Y || near.Y > far.X {
@@ -44,8 +58,8 @@ func RayVsBody(start rl.Vector2, velocity rl.Vector2, body Body) (collision bool
     // Contact normal
     contactNormal = rl.NewVector2(0, 0)
    
-    if (near.X > near.Y) {
-        if (velocity.X < 0) {
+    if near.X > near.Y {
+        if velocity.X < 0 {
             contactNormal.X = 1
             contactNormal.Y = 0
         } else {
@@ -53,7 +67,7 @@ func RayVsBody(start rl.Vector2, velocity rl.Vector2, body Body) (collision bool
             contactNormal.Y = 0
         }
     } else {
-        if (velocity.Y < 0) {
+        if velocity.Y < 0 {
             contactNormal.X = 0
             contactNormal.Y = 1
         } else {

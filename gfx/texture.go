@@ -36,7 +36,7 @@ func RenderTexture(texture rl.Texture2D,
     origin := rl.NewVector2(0, 0)
 
 	// Rotation in degrees
-	rotation := float32(0.0)
+	rotation := float32(0)
 
 	// Color
 	color := rl.White
