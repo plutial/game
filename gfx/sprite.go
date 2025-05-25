@@ -32,11 +32,11 @@ func NewSprite(texture rl.Texture2D) Sprite {
     return sprite
 }
 
+func (sprite *Sprite) Render() {
+	RenderTexture(sprite.Texture, sprite.SrcPosition, sprite.SrcSize, sprite.DstPosition, sprite.DstSize)
+}
+
 func (sprite *Sprite) Destroy() {
 	// Unload texture
 	DestroyTexture(sprite.Texture)
-}
-
-func (sprite *Sprite) Render() {
-	RenderTexture(sprite.Texture, sprite.SrcPosition, sprite.SrcSize, sprite.DstPosition, sprite.DstSize)
 }

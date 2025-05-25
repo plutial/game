@@ -3,9 +3,8 @@ package ecs
 import (
 	"log"
 	"reflect"
-	"fmt"
 	// "math"
-	// "sort"
+	"sort"
 
 	// Raylib
 	rl "github.com/gen2brain/raylib-go/raylib"
@@ -35,7 +34,7 @@ type World struct {
 	ComponentPool map[reflect.Type]any
 }
 
-// Create a new world
+// Create a new world and its entities' components
 func NewWorld() World {
 	world := World {}
 	world.EntityHasComponent = make(map[int]map[reflect.Type]bool)
@@ -98,7 +97,7 @@ func (world *World) UpdateInput() {
 		log.Fatal(err)
 	}
 
-	speed := float32(4)
+	speed := float32(3)
 
 	if rl.IsKeyDown(rl.KeyA) {
 		force.Velocity.X -= speed
@@ -115,6 +114,11 @@ func (world *World) UpdateInput() {
 	if rl.IsKeyDown(rl.KeyS) {
 		force.Velocity.Y += speed
 	}
+}
+
+type TileCollisionData struct {
+	TileId 		int
+	Distance 	float32
 }
 
 func (world *World) UpdatePhysics() {
@@ -139,32 +143,60 @@ func (world *World) UpdatePhysics() {
 		}
 
 		// Handle tile collisions
-		for tileId := range tiles {
-			tileBody, _ := GetComponent[physics.Body](world, tileId)
-			
+		// Slice to store tiles which have collided
+		tileCollisionData := make([]TileCollisionData, 0)
+
+		// Check which tiles could collided with the body
+		for _, tileId := range tiles {
+			tileBody, err := GetComponent[physics.Body](world, tileId)
+
+			if err != nil {
+				log.Fatal(err)
+			}
+		
+			// Carry out a broad phase to stop handling 
+			// Minimize expensive physics on absurd tiles that will never collide with
 			collision := physics.BodyBroadPhase(*body, *tileBody, force.Velocity)
 			
 			if !collision {
 				continue
 			}
 
-			collision, velocityResolve := physics.BodyDynamicVsBodyResolve(*body, *tileBody, force.Velocity)
+			// Check for collision
+			collision, _, _ = physics.BodyDynamicVsBody(*body, *tileBody, force.Velocity)
 
-			
 			if collision {
-				force.Velocity = velocityResolve
-			}
+				// Get the distance from the body to the tile
+				distance := physics.GetDistance(body.Position, tileBody.Position)
 
-			if rl.IsKeyPressed(rl.KeySpace) && collision {
-				fmt.Println(collision)
+				data := TileCollisionData { tileId , distance }
+
+				// Add to the collided tile list
+				tileCollisionData = append(tileCollisionData, data)
 			}
 		}
 
+		// Sort the tiles by which tiles are the closest to the body
+		// This is a fix to imitate actual physics (and to handle other cases)
+		sort.SliceStable(tileCollisionData, func(a, b int) bool {
+			return tileCollisionData[a].Distance < tileCollisionData[b].Distance
+		})
 
-		if rl.IsKeyPressed(rl.KeySpace) {
-			fmt.Println(body.Position)
-			fmt.Println(force.Velocity)
-			fmt.Println("")
+		// Resolve the collisions
+		for _, data := range tileCollisionData {
+			tileId := data.TileId
+
+			tileBody, err := GetComponent[physics.Body](world, tileId)
+
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			collision, velocityResolve := physics.BodyDynamicVsBodyResolve(*body, *tileBody, force.Velocity)
+
+			if collision {
+				force.Velocity = velocityResolve
+			}
 		}
 
 		// Update the body position
@@ -221,5 +253,19 @@ func (world *World) Render() {
 		}
 
 		sprite.Render()
+	}
+}
+
+func (world *World) Destroy() {
+	entities := GetEntities[gfx.Sprite](world)
+	
+	for _, id := range entities {
+		sprite, err := GetComponent[gfx.Sprite](world, id)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		sprite.Destroy()
 	}
 }

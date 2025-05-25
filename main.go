@@ -36,4 +36,6 @@ func main() {
 		// End renderering and swap buffers
 		rl.EndDrawing()
 	}
+
+	world.Destroy()
 }
