@@ -3,7 +3,6 @@ package ecs
 import (
 	"log"
 	"reflect"
-	// "math"
 	"sort"
 
 	// Raylib
@@ -24,6 +23,10 @@ func getType[T any]() reflect.Type {
 // which entity contains which components,
 // and component storage, stored as slices
 type World struct {
+	// Gravity
+	Gravity 	float32
+	MaxGravity 	float32
+
 	// Entity count
 	Size int
 
@@ -37,6 +40,12 @@ type World struct {
 // Create a new world and its entities' components
 func NewWorld() World {
 	world := World {}
+
+	// Gravity
+	world.Gravity = 0.1
+	world.MaxGravity = 5 
+
+	// ECS
 	world.EntityHasComponent = make(map[int]map[reflect.Type]bool)
 	world.ComponentPool = make(map[reflect.Type]any)
 		
@@ -44,6 +53,10 @@ func NewWorld() World {
 	RegisterComponent[gfx.Sprite](&world)
 	RegisterComponent[physics.Body](&world)
 	RegisterComponent[physics.Force](&world)
+	RegisterComponent[physics.Collisions](&world)
+
+	// Player traits
+	RegisterComponent[Jump](&world)
 
 	// Tags
 	RegisterComponent[PlayerTag](&world)
@@ -97,6 +110,19 @@ func (world *World) UpdateInput() {
 		log.Fatal(err)
 	}
 
+	collisions, err := GetComponent[physics.Collisions](world, playerId)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	jump, err := GetComponent[Jump](world, playerId)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Horizontal movement
 	speed := float32(3)
 
 	if rl.IsKeyDown(rl.KeyA) {
@@ -107,20 +133,126 @@ func (world *World) UpdateInput() {
 		force.Velocity.X += speed
 	}
 
-	if rl.IsKeyDown(rl.KeyW) {
-		force.Velocity.Y -= speed
+	// Jump
+	if collisions.Down {
+		// How long the body has been in the air for
+		jump.AirTime = 0
+		
+		// Numbers of jumps possible at a time
+		// 2 for double jump, 3 for triple jump ...
+		// Currently not working but I'm not bother to fix it
+		jump.Jumps = 1
+	} else {
+		// If the body is not touching the ground, it's in the air
+		jump.AirTime += 1
 	}
 
-	if rl.IsKeyDown(rl.KeyS) {
-		force.Velocity.Y += speed
+	if rl.IsKeyPressed(rl.KeyW) {
+		// Register a jump 
+		// A jump can be registered even if the body has not yet touched the ground
+		jump.JumpRegistered = 3
+
+		// Fix to enable multiple jumps
+		// Currently not working, coyote time doesn't work after using this fix
+		// jump.AirTime = 0
+	}
+
+		
+	// If the body does not hit the ground in time, it won't jump
+	if jump.JumpRegistered > 0 {
+		// If the body can jump, and if it is on the ground (kind of... coyote time)
+		if jump.Jumps > 0 && jump.AirTime < 5 {
+			// How high it goes (and the actual jump part)
+			force.Velocity.Y = -3
+
+			// Take off an available jump
+			jump.Jumps -= 1
+
+			// Stop registering the jumps
+			jump.JumpRegistered = 0
+		} else {
+			// Tick down the timer of the register
+			jump.JumpRegistered -= 1
+		}
 	}
 }
 
-type TileCollisionData struct {
-	TileId 		int
-	Distance 	float32
+// Update tile physics against a body with force
+func (world *World) UpdateTilePhysics(body *physics.Body, force *physics.Force, collisions *physics.Collisions, tiles []int) {
+	// Slice to store tiles which have collided
+	type TileCollisionData struct {
+		TileId 		int
+		Distance 	float32
+	}
+
+	tileCollisionData := make([]TileCollisionData, 0)
+
+	// Check which tiles could collided with the body
+	for _, tileId := range tiles {
+		tileBody, err := GetComponent[physics.Body](world, tileId)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// Carry out a broad phase to stop handling 
+		// Minimize expensive physics on absurd tiles that will never collide with
+		collision := physics.BodyBroadPhase(*body, *tileBody, force.Velocity)
+
+		if !collision {
+			continue
+		}
+
+		// Check for collision
+		collision, _, _ = physics.BodyDynamicVsBody(*body, *tileBody, force.Velocity)
+
+		if collision {
+			// Get the distance from the body to the tile
+			distance := physics.GetDistance(body.Position, tileBody.Position)
+
+			data := TileCollisionData { tileId , distance }
+
+			// Add to the collided tile list
+			tileCollisionData = append(tileCollisionData, data)
+		}
+	}
+
+	// Sort the tiles by which tiles are the closest to the body
+	// This is a fix to imitate actual physics (and to handle other cases)
+	sort.SliceStable(tileCollisionData, func(a, b int) bool {
+		return tileCollisionData[a].Distance < tileCollisionData[b].Distance
+	})
+
+	// Reset the collisions (if the entity has the collisions component)
+	if collisions != nil {
+		*collisions = physics.Collisions {}
+	}
+
+	// Resolve the collisions
+	for _, data := range tileCollisionData {
+		tileId := data.TileId
+
+		tileBody, err := GetComponent[physics.Body](world, tileId)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		collision, velocityResolve, contactNormal := physics.BodyDynamicVsBodyResolve(*body, *tileBody, force.Velocity)
+
+		if collision {
+			// Update the collision velocity
+			force.Velocity = velocityResolve
+
+			// Update the collision direction
+			if collisions != nil {
+				collisions.Update(contactNormal)
+			}
+		}
+	}
 }
 
+// Update all the entites with a body and force
 func (world *World) UpdatePhysics() {
 	// Get all the entities which have the body component and the force component
 	entities := GetEntities2[physics.Body, physics.Force](world)
@@ -142,69 +274,27 @@ func (world *World) UpdatePhysics() {
 			log.Fatal(err)
 		}
 
+		var collisions *physics.Collisions
+		if HasComponent[physics.Collisions](world, id) {
+			collisions, err = GetComponent[physics.Collisions](world, id)
+
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+
+		// Apply gravity
+		force.Velocity.Y = min(world.MaxGravity, force.Velocity.Y + world.Gravity)
+
 		// Handle tile collisions
-		// Slice to store tiles which have collided
-		tileCollisionData := make([]TileCollisionData, 0)
-
-		// Check which tiles could collided with the body
-		for _, tileId := range tiles {
-			tileBody, err := GetComponent[physics.Body](world, tileId)
-
-			if err != nil {
-				log.Fatal(err)
-			}
-		
-			// Carry out a broad phase to stop handling 
-			// Minimize expensive physics on absurd tiles that will never collide with
-			collision := physics.BodyBroadPhase(*body, *tileBody, force.Velocity)
-			
-			if !collision {
-				continue
-			}
-
-			// Check for collision
-			collision, _, _ = physics.BodyDynamicVsBody(*body, *tileBody, force.Velocity)
-
-			if collision {
-				// Get the distance from the body to the tile
-				distance := physics.GetDistance(body.Position, tileBody.Position)
-
-				data := TileCollisionData { tileId , distance }
-
-				// Add to the collided tile list
-				tileCollisionData = append(tileCollisionData, data)
-			}
-		}
-
-		// Sort the tiles by which tiles are the closest to the body
-		// This is a fix to imitate actual physics (and to handle other cases)
-		sort.SliceStable(tileCollisionData, func(a, b int) bool {
-			return tileCollisionData[a].Distance < tileCollisionData[b].Distance
-		})
-
-		// Resolve the collisions
-		for _, data := range tileCollisionData {
-			tileId := data.TileId
-
-			tileBody, err := GetComponent[physics.Body](world, tileId)
-
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			collision, velocityResolve := physics.BodyDynamicVsBodyResolve(*body, *tileBody, force.Velocity)
-
-			if collision {
-				force.Velocity = velocityResolve
-			}
-		}
-
+		world.UpdateTilePhysics(body, force, collisions, tiles)
+				
 		// Update the body position
 		body.Position.X += force.Velocity.X
 		body.Position.Y += force.Velocity.Y
 
 		// Reset the velocity after calculation
-		force.Velocity = rl.NewVector2(0, 0)
+		force.Velocity.X = 0
 	}
 }
 

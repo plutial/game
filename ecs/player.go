@@ -2,14 +2,25 @@ package ecs
 
 import (
 	"log"
+	
+	// Raylib
+	rl "github.com/gen2brain/raylib-go/raylib"
 
 	// Game packages
-	rl "github.com/gen2brain/raylib-go/raylib"
 	"github.com/plutial/game/gfx"
 	"github.com/plutial/game/physics"
 )
 
 type PlayerTag bool
+
+type Jump struct {
+	// Jump "buffers" (like Coyote time)
+	AirTime 		int
+	JumpRegistered 	int
+
+	// Number of jumps available
+	Jumps	int
+}
 
 func (world *World) NewPlayer() {
 	id := world.NewEntity()
@@ -39,5 +50,23 @@ func (world *World) NewPlayer() {
 	*body = physics.NewBody(position, size)
 
 	// Force
-	AddComponent[physics.Force](world, id)
+	_, err = AddComponent[physics.Force](world, id)
+	
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Jump
+	_, err = AddComponent[Jump](world, id)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Colllisions
+	_, err = AddComponent[physics.Collisions](world, id)
+
+	if err != nil {
+		log.Fatal(err)
+	}
 }

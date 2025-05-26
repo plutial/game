@@ -19,3 +19,8 @@ func NewForce(velocity rl.Vector2, acceleration rl.Vector2) Force {
 func GetDistance(a, b rl.Vector2) float32 {
 	return float32(math.Sqrt(math.Pow(float64(a.X - b.X), 2) + math.Pow(float64(a.Y - b.Y), 2)))
 }
+
+// Rounding
+func Round(x, unit float32) float32 {
+    return float32(math.Round(float64(x / unit))) * unit
+}
