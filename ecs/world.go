@@ -2,6 +2,7 @@ package ecs
 
 import (
 	"log"
+	"fmt"
 	"reflect"
 	"sort"
 
@@ -123,15 +124,24 @@ func (world *World) UpdateInput() {
 	}
 
 	// Horizontal movement
-	speed := float32(3)
+	// speed := float32(3)
 
 	if rl.IsKeyDown(rl.KeyA) {
-		force.Velocity.X -= speed
+		force.Acceleration.X = max(-3, force.Acceleration.X - 0.3)
 	}
 
 	if rl.IsKeyDown(rl.KeyD) {
-		force.Velocity.X += speed
+		force.Acceleration.X = min(3, force.Acceleration.X + 0.3)
+	} 
+
+	if !rl.IsKeyDown(rl.KeyA) && !rl.IsKeyDown(rl.KeyD) {
+		if force.Acceleration.X < 0 {
+			force.Acceleration.X = min(0, force.Acceleration.X + 0.6)
+		} else {
+			force.Acceleration.X = max(0, force.Acceleration.X - 0.6)
+		}
 	}
+
 
 	// Jump
 	if collisions.Down {
@@ -163,7 +173,7 @@ func (world *World) UpdateInput() {
 		// If the body can jump, and if it is on the ground (kind of... coyote time)
 		if jump.Jumps > 0 && jump.AirTime < 5 {
 			// How high it goes (and the actual jump part)
-			force.Velocity.Y = -3
+			force.Acceleration.Y = -3
 
 			// Take off an available jump
 			jump.Jumps -= 1
@@ -284,17 +294,27 @@ func (world *World) UpdatePhysics() {
 		}
 
 		// Apply gravity
-		force.Velocity.Y = min(world.MaxGravity, force.Velocity.Y + world.Gravity)
+		force.Acceleration.Y = min(world.MaxGravity, force.Acceleration.Y + world.Gravity)
+
+		// Update acceleration
+		force.Velocity.X += force.Acceleration.X
+		force.Velocity.Y += force.Acceleration.Y
 
 		// Handle tile collisions
+		// This MUST be handled at the end AFTER acceleration has been applied
 		world.UpdateTilePhysics(body, force, collisions, tiles)
-				
+
 		// Update the body position
 		body.Position.X += force.Velocity.X
 		body.Position.Y += force.Velocity.Y
 
+		fmt.Println(force.Acceleration)
+		fmt.Println(force.Velocity)
+		fmt.Println("")
+
 		// Reset the velocity after calculation
 		force.Velocity.X = 0
+		force.Velocity.Y = 0
 	}
 }
 

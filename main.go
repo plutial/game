@@ -18,7 +18,9 @@ func main() {
 
 	// Create the game world
 	world := ecs.NewWorld()
+	defer world.Destroy()
 
+	// Set the target frame rate
 	rl.SetTargetFPS(60)
 	for !rl.WindowShouldClose() {
 		// Updating
@@ -36,6 +38,4 @@ func main() {
 		// End renderering and swap buffers
 		rl.EndDrawing()
 	}
-
-	world.Destroy()
 }
