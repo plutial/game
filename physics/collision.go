@@ -8,7 +8,7 @@ import (
 )
 
 func BodyStaticVsBody(bodyA Body, bodyB Body) (collision bool) {
-	return bodyA.Position.X + bodyA.Size.X >= bodyB.Position.X || bodyA.Position.X < bodyB.Position.X + bodyB.Size.X || bodyA.Position.Y + bodyA.Size.Y >= bodyB.Position.Y || bodyA.Position.Y < bodyB.Position.Y + bodyB.Size.Y
+	return bodyA.Position.X+bodyA.Size.X >= bodyB.Position.X || bodyA.Position.X < bodyB.Position.X+bodyB.Size.X || bodyA.Position.Y+bodyA.Size.Y >= bodyB.Position.Y || bodyA.Position.Y < bodyB.Position.Y+bodyB.Size.Y
 }
 
 func BodyBroadPhase(bodyA Body, bodyB Body, velocity rl.Vector2) (collision bool) {
@@ -61,29 +61,11 @@ func BodyDynamicVsBodyResolve(bodyA Body, bodyB Body, velocity rl.Vector2) (coll
 
 	// Handle collision
 	if collision {
-		velocity.X += contactNormal.X * float32(math.Abs(float64(velocity.X * (1 - hitTime))))
-		velocity.Y += contactNormal.Y * float32(math.Abs(float64(velocity.Y * (1 - hitTime))))
+		velocity.X += contactNormal.X * float32(math.Abs(float64(velocity.X*(1-hitTime))))
+		velocity.Y += contactNormal.Y * float32(math.Abs(float64(velocity.Y*(1-hitTime))))
 	}
 
 	velocityResolve = velocity
 
 	return collision, velocityResolve, contactNormal
-}
-
-type Collisions struct {
-	Left, Right, Up, Down bool
-}
-
-func (collisions *Collisions) Update(contactNormal rl.Vector2) {
-	if contactNormal.X == 1 {
-		collisions.Left = true
-	} else if contactNormal.X == -1 {
-		collisions.Right = true
-	}
-
-	if contactNormal.Y == 1 {
-		collisions.Up = true
-	} else if contactNormal.Y == -1 {
-		collisions.Down = true
-	}
 }

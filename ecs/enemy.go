@@ -11,13 +11,13 @@ import (
 	"github.com/plutial/game/physics"
 )
 
-type PlayerTag bool
+type EnemyTag bool
 
-func (world *World) NewPlayer() {
+func (world *World) NewEnemy() {
 	id := world.NewEntity()
 
 	// Assign a player tag to mark the player entity
-	_, err := AddComponent[PlayerTag](world, id)
+	_, err := AddComponent[EnemyTag](world, id)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -36,7 +36,7 @@ func (world *World) NewPlayer() {
 		log.Fatal(err)
 	}
 
-	position := rl.NewVector2(0, 0)
+	position := rl.NewVector2(50, 0)
 	size := rl.NewVector2(16, 16)
 
 	*body = physics.NewBody(position, size)

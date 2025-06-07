@@ -2,38 +2,35 @@ package ecs
 
 import (
 	"fmt"
+
+	"github.com/plutial/game/util"
 )
 
 // Register a component with the component type
 func RegisterComponent[T any](world *World) {
 	// Create a slice for the component at the given index
-	componentSlice := make([]T, 1)
-	world.ComponentPool[getType[T]()] = &componentSlice
+	componentSet := util.NewSparseSet[T]()
+	world.ComponentPool[util.GetType[T]()] = &componentSet
 }
 
 // Get the address of the component slice
-func GetComponentSlice[T any](world *World) *[]T {
+func GetComponentSet[T any](world *World) *util.SparseSet[T] {
 	// Get the address of the component slice
-	componentSliceAddress, ok := world.ComponentPool[getType[T]()].(*[]T)
+	componentSetAddress, ok := world.ComponentPool[util.GetType[T]()].(*util.SparseSet[T])
 
 	if !ok {
-		panic("Component type not found")
+		message := fmt.Sprintf("Component type %v not found", util.GetType[T]())
+		panic(message)
 	}
 
-	return componentSliceAddress
+	return componentSetAddress
 }
 
 // Check if an entity has a component
 func HasComponent[T any](world *World, id int) bool {
-	hasComponent, ok := world.EntityHasComponent[id]
-	
-	// If the entity is dead, return false
-	if !ok {
-		return false
-	}
+	componentSet := GetComponentSet[T](world)
 
-	// Check if the entity has the said component
-	_, ok = hasComponent[getType[T]()]
+	_, ok := componentSet.Get(id)
 
 	// Return the check
 	return ok
@@ -42,45 +39,36 @@ func HasComponent[T any](world *World, id int) bool {
 // Add a component to an entity
 func AddComponent[T any](world *World, id int) (*T, error) {
 	// Get the component slice
-	componentSlice := GetComponentSlice[T](world)
+	componentSet := GetComponentSet[T](world)
 
 	// If the entity already has the component, return the address of the component
 	if HasComponent[T](world, id) {
-		return &(*componentSlice)[id], nil
+		address, _ := componentSet.GetAddress(id)
+		return address, nil
 	}
 
-	// Check if the entity exists
-	_, ok := world.EntityHasComponent[id]
+	// Add the entity
+	var temp T
+	componentSet.Add(id, temp)
+	address, _ := componentSet.GetAddress(id)
 
-	// If the entity is dead, return an error
-	if !ok {
-		return nil, fmt.Errorf("Entity %v is not alive; therefore, adding the component %v is not possible", id, getType[T]())
-	}
-
-	// Mark that the entity has the component
-	world.EntityHasComponent[id][getType[T]()] = true
-
-	// If the id is out of range of the slice, then double size of the slice
-	// len is used instead of cap as cap is sometimes inconsistent
-	for len(*componentSlice) <= id {
-		*componentSlice = append(*componentSlice, make([]T, len(*componentSlice))...)
-	}
-	
 	// Return the address of the component
-	return &(*componentSlice)[id], nil
+	return address, nil
 }
 
 // Get the address of the component
 func GetComponent[T any](world *World, id int) (*T, error) {
+	componentSet := GetComponentSet[T](world)
+
+	address, ok := componentSet.GetAddress(id)
+
 	// Check if the entity has the component
-	if !HasComponent[T](world, id) {
-		return nil, fmt.Errorf("Entity %v is either not alive and/or does not have the component %v", id, getType[T]())
+	if !ok {
+		return nil, fmt.Errorf("Entity %v is either not alive and/or does not have the component %v", id, util.GetType[T]())
 	}
 
-	componentSlice := GetComponentSlice[T](world) 
-
 	// Return the address of the component
-	return &(*componentSlice)[id], nil
+	return address, nil
 }
 
 func GetEntities[A any](world *World) []int {
@@ -91,7 +79,7 @@ func GetEntities[A any](world *World) []int {
 			entities = append(entities, id)
 		}
 	}
-	
+
 	return entities
 }
 
@@ -103,6 +91,6 @@ func GetEntities2[A, B any](world *World) []int {
 			entities = append(entities, id)
 		}
 	}
-	
+
 	return entities
 }
