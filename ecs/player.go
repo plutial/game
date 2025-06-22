@@ -1,8 +1,6 @@
 package ecs
 
 import (
-	"log"
-
 	// Raylib
 	rl "github.com/gen2brain/raylib-go/raylib"
 
@@ -17,24 +15,14 @@ func (world *World) NewPlayer() {
 	id := world.NewEntity()
 
 	// Assign a player tag to mark the player entity
-	_, err := AddComponent[PlayerTag](world, id)
-	if err != nil {
-		log.Fatal(err)
-	}
+	AddComponent[PlayerTag](world, id)
 
 	// Add components
-	sprite, err := AddComponent[gfx.Sprite](world, id)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	sprite := AddComponent[gfx.Sprite](world, id)
 	*sprite = gfx.NewSprite(gfx.NewTexture("assets/res/image.png"))
 
 	// Body
-	body, err := AddComponent[physics.Body](world, id)
-	if err != nil {
-		log.Fatal(err)
-	}
+	body := AddComponent[physics.Body](world, id)
 
 	position := rl.NewVector2(0, 0)
 	size := rl.NewVector2(16, 16)
@@ -42,16 +30,9 @@ func (world *World) NewPlayer() {
 	*body = physics.NewBody(position, size)
 
 	// Force
-	force, err := AddComponent[physics.Force](world, id)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	force := AddComponent[physics.Force](world, id)
 	*force = physics.NewForce(rl.NewVector2(0, 0), rl.NewVector2(0, 0))
 
 	// Jump
-	_, err = AddComponent[physics.Jump](world, id)
-	if err != nil {
-		log.Fatal(err)
-	}
+	AddComponent[physics.Jump](world, id)
 }

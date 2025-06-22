@@ -68,7 +68,7 @@ func BodyJump(force *Force, jump *Jump, jumpPressed bool) {
 		// If the body can jump, and if it is on the ground (kind of... coyote time)
 		if jump.Jumps > 0 && jump.AirTime < 5 {
 			// How high it goes (and the actual jump part)
-			force.Acceleration.Y = -9
+			force.Acceleration.Y = -5
 
 			// Take off an available jump
 			jump.Jumps -= 1
@@ -79,5 +79,13 @@ func BodyJump(force *Force, jump *Jump, jumpPressed bool) {
 			// Tick down the timer of the register
 			jump.JumpRegistered -= 1
 		}
+	}
+}
+
+func BodyDash(force *Force, moveLeft, moveRight, dash bool) {
+	if dash && moveRight {
+		force.Velocity.X = 30
+	} else if dash && moveLeft {
+		force.Velocity.X = -30
 	}
 }

@@ -65,10 +65,7 @@ func (world *World) LoadMap(path string) {
 			AddComponent[TileTag](world, id)
 
 			// Create the sprite component
-			sprite, err := AddComponent[gfx.Sprite](world, id)
-			if err != nil {
-				log.Fatal(err)
-			}
+			sprite := AddComponent[gfx.Sprite](world, id)
 
 			*sprite = gfx.NewSprite(tileTexture)
 
@@ -83,10 +80,7 @@ func (world *World) LoadMap(path string) {
 			sprite.DstSize = rl.NewVector2(16, 16)
 
 			// Create the physics body
-			body, err := AddComponent[physics.Body](world, id)
-			if err != nil {
-				log.Fatal(err)
-			}
+			body := AddComponent[physics.Body](world, id)
 
 			position := rl.NewVector2(float32(x)*16, float32(y)*16)
 			size := rl.NewVector2(16, 16)

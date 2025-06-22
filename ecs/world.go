@@ -1,7 +1,6 @@
 package ecs
 
 import (
-	"log"
 	"sort"
 
 	// Raylib
@@ -109,38 +108,57 @@ func (world *World) DeleteEntity(id int) {
 
 func (world *World) UpdateInput() {
 	// Get the player id
-	entities := GetEntities[PlayerTag](world)
-	playerId := entities[0]
+	playerId := GetEntities[PlayerTag](world)[0]
 
-	force, err := GetComponent[physics.Force](world, playerId)
-	if err != nil {
-		log.Fatal(err)
-	}
+	force := GetComponent[physics.Force](world, playerId)
 
 	// Horizontal movement
 	physics.BodyMove(force, rl.IsKeyDown(rl.KeyA), rl.IsKeyDown(rl.KeyD))
+	physics.BodyDash(force, rl.IsKeyDown(rl.KeyA), rl.IsKeyDown(rl.KeyD), rl.IsKeyPressed(rl.KeySpace))
 }
 
 func (world *World) UpdateJump() {
-	entities := GetEntities2[physics.Jump, physics.Force](world)
+	playerId := GetEntities[PlayerTag](world)[0]
 
-	for _, id := range entities {
-		force, err := GetComponent[physics.Force](world, id)
-		if err != nil {
-			log.Fatal(err)
-		}
+	force := GetComponent[physics.Force](world, playerId)
+	jump := GetComponent[physics.Jump](world, playerId)
 
-		jump, err := GetComponent[physics.Jump](world, id)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		physics.BodyJump(force, jump, rl.IsKeyPressed(rl.KeyW))
-	}
+	physics.BodyJump(force, jump, rl.IsKeyPressed(rl.KeyW))
 }
 
 func (world *World) UpdateMovement() {
 	world.UpdateJump()
+}
+
+func (world *World) EntityAttack() {
+	// Dismiss if the player does not attack
+	if !rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
+		return
+	}
+
+	// Get the player id
+	playerId := GetEntities[PlayerTag](world)[0]
+
+	playerBody := GetComponent[physics.Body](world, playerId)
+
+	// Get the enemies
+	enemies := GetEntities[EnemyTag](world)
+
+	for _, enemyId := range enemies {
+		enemyBody := GetComponent[physics.Body](world, enemyId)
+		enemyForce := GetComponent[physics.Force](world, enemyId)
+
+		if physics.GetDistance(playerBody.Position, enemyBody.Position) < 80 {
+			if playerBody.Position.X-enemyBody.Position.X > 0 {
+				enemyForce.Velocity.X = -30
+			} else {
+				enemyForce.Velocity.X = 30
+			}
+
+			enemyForce.Velocity.Y = -30
+			enemyForce.Acceleration.Y = -0.6
+		}
+	}
 }
 
 // Update tile physics against a body with force
@@ -155,10 +173,7 @@ func (world *World) UpdateTilePhysics(body *physics.Body, force *physics.Force, 
 
 	// Check which tiles could collided with the body
 	for _, tileId := range tiles {
-		tileBody, err := GetComponent[physics.Body](world, tileId)
-		if err != nil {
-			log.Fatal(err)
-		}
+		tileBody := GetComponent[physics.Body](world, tileId)
 
 		// Carry out a broad phase to stop handling
 		// Minimize expensive physics on absurd tiles that will never collide with
@@ -195,10 +210,7 @@ func (world *World) UpdateTilePhysics(body *physics.Body, force *physics.Force, 
 	for _, data := range tileCollisionData {
 		tileId := data.TileId
 
-		tileBody, err := GetComponent[physics.Body](world, tileId)
-		if err != nil {
-			log.Fatal(err)
-		}
+		tileBody := GetComponent[physics.Body](world, tileId)
 
 		collision, velocityResolve, contactNormal := physics.BodyDynamicVsBodyResolve(*body, *tileBody, force.Velocity)
 
@@ -222,17 +234,19 @@ func (world *World) UpdatePhysics() {
 
 	for _, id := range entities {
 		// Get the components
-		body, err := GetComponent[physics.Body](world, id)
-		if err != nil {
-			log.Fatal(err)
-		}
+		body := GetComponent[physics.Body](world, id)
+		force := GetComponent[physics.Force](world, id)
 
-		force, err := GetComponent[physics.Force](world, id)
-		if err != nil {
-			log.Fatal(err)
-		}
+		// Apply gravity
+		force.Acceleration.Y += world.Gravity
 
-		force.Acceleration.Y = min(world.MaxGravity, force.Acceleration.Y+world.Gravity)
+		// Limit the gravity
+		force.Acceleration.Y = min(world.MaxGravity, force.Acceleration.Y)
+
+		// If the body is on the ground, set gravity to zero
+		if force.Collisions.Down {
+			force.Acceleration.Y = min(0, force.Acceleration.Y)
+		}
 
 		// Update acceleration
 		force.Velocity.X += force.Acceleration.X
@@ -258,15 +272,8 @@ func (world *World) UpdateSprite() {
 
 	for _, id := range entities {
 		// Get the components
-		sprite, err := GetComponent[gfx.Sprite](world, id)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		body, err := GetComponent[physics.Body](world, id)
-		if err != nil {
-			log.Fatal(err)
-		}
+		sprite := GetComponent[gfx.Sprite](world, id)
+		body := GetComponent[physics.Body](world, id)
 
 		// Update the position of the sprite
 		sprite.DstPosition = body.Position
@@ -280,6 +287,9 @@ func (world *World) Update() {
 	// Movement
 	world.UpdateMovement()
 
+	// Attacking
+	world.EntityAttack()
+
 	// Update the physics world
 	world.UpdatePhysics()
 
@@ -291,10 +301,7 @@ func (world *World) Render() {
 	entities := GetEntities[gfx.Sprite](world)
 
 	for _, id := range entities {
-		sprite, err := GetComponent[gfx.Sprite](world, id)
-		if err != nil {
-			log.Fatal(err)
-		}
+		sprite := GetComponent[gfx.Sprite](world, id)
 
 		sprite.Render()
 	}
@@ -304,10 +311,7 @@ func (world *World) Destroy() {
 	entities := GetEntities[gfx.Sprite](world)
 
 	for _, id := range entities {
-		sprite, err := GetComponent[gfx.Sprite](world, id)
-		if err != nil {
-			log.Fatal(err)
-		}
+		sprite := GetComponent[gfx.Sprite](world, id)
 
 		sprite.Destroy()
 	}

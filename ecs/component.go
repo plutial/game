@@ -2,6 +2,7 @@ package ecs
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/plutial/game/util"
 )
@@ -37,14 +38,14 @@ func HasComponent[T any](world *World, id int) bool {
 }
 
 // Add a component to an entity
-func AddComponent[T any](world *World, id int) (*T, error) {
+func AddComponent[T any](world *World, id int) *T {
 	// Get the component slice
 	componentSet := GetComponentSet[T](world)
 
 	// If the entity already has the component, return the address of the component
 	if HasComponent[T](world, id) {
 		address, _ := componentSet.GetAddress(id)
-		return address, nil
+		return address
 	}
 
 	// Add the entity
@@ -53,22 +54,24 @@ func AddComponent[T any](world *World, id int) (*T, error) {
 	address, _ := componentSet.GetAddress(id)
 
 	// Return the address of the component
-	return address, nil
+	return address
 }
 
 // Get the address of the component
-func GetComponent[T any](world *World, id int) (*T, error) {
+func GetComponent[T any](world *World, id int) *T {
 	componentSet := GetComponentSet[T](world)
 
 	address, ok := componentSet.GetAddress(id)
 
 	// Check if the entity has the component
 	if !ok {
-		return nil, fmt.Errorf("Entity %v is either not alive and/or does not have the component %v", id, util.GetType[T]())
+		// Send an error message
+		log.Fatal("Entity %v is either not alive and/or does not have the component %v", id, util.GetType[T]())
+		return nil
 	}
 
 	// Return the address of the component
-	return address, nil
+	return address
 }
 
 func GetEntities[A any](world *World) []int {
