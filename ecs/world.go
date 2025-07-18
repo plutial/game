@@ -26,9 +26,6 @@ type World struct {
 	ComponentPool map[string]any
 }
 
-// Entity exist component
-type Alive bool
-
 // Create a new world and its entities' components
 func NewWorld() World {
 	world := World{}
@@ -66,44 +63,6 @@ func NewWorld() World {
 	world.NewPlayer()
 
 	return world
-}
-
-func (world *World) IsEntityAlive(id int) bool {
-	componentSet := *GetComponentSet[Alive](world)
-
-	_, ok := componentSet.Get(id)
-
-	return ok
-}
-
-func (world *World) NewEntity() int {
-	for id := range world.Size {
-		// If the entity is not alive, assign the new entity id
-		if !world.IsEntityAlive(id) {
-			// Check the entity is now alive
-			componentSet := GetComponentSet[Alive](world)
-			componentSet.Add(id, true)
-
-			return id
-		}
-	}
-
-	// If every entity that currently exists is alive, add a new entity position
-	id := world.Size
-
-	// Check the entity is now alive
-	componentSet := GetComponentSet[Alive](world)
-	componentSet.Add(id, true)
-
-	// Increase the number of entities
-	world.Size++
-
-	return id
-}
-
-func (world *World) DeleteEntity(id int) {
-	componentSet := GetComponentSet[Alive](world)
-	componentSet.Remove(id)
 }
 
 func (world *World) UpdateInput() {
