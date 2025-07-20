@@ -9,25 +9,37 @@ type Jump struct {
 	Jumps int
 }
 
-func BodyMove(force *Force, moveLeft bool, moveRight bool) {
+func (force *Force) Move(moveLeft bool, moveRight bool) {
+	// Slow the entities down with friction
+	if force.Acceleration.X < 0 {
+		// Slow the entity down until its acceleration is 0
+		force.Acceleration.X += 0.6
+		force.Acceleration.X = min(0, force.Acceleration.X)
+	} else {
+		// Slow the entity down until its acceleration is 0
+		force.Acceleration.X -= 0.6
+		force.Acceleration.X = max(0, force.Acceleration.X)
+	}
+
+	// Move the entity
 	if moveLeft {
-		force.Acceleration.X = max(-force.Speed, force.Acceleration.X-0.3)
+		// Add the momemtum
+		force.Acceleration.X -= 0.9
+
+		// Limit the momentum
+		force.Acceleration.X = max(-force.Speed, force.Acceleration.X)
 	}
 
 	if moveRight {
-		force.Acceleration.X = min(force.Speed, force.Acceleration.X+0.3)
-	}
+		// Add the momentum
+		force.Acceleration.X += 0.9
 
-	if !moveLeft && !moveRight {
-		if force.Acceleration.X < 0 {
-			force.Acceleration.X = min(0, force.Acceleration.X+0.6)
-		} else {
-			force.Acceleration.X = max(0, force.Acceleration.X-0.6)
-		}
+		// Limit the momentum
+		force.Acceleration.X = min(force.Speed, force.Acceleration.X)
 	}
 }
 
-func BodyJump(force *Force, jump *Jump, jumpPressed bool) {
+func (force *Force) Jump(jump *Jump, jumpPressed bool) {
 	if jumpPressed {
 		// Register a jump
 		// A jump can be registered even if the body has not yet touched the ground
@@ -68,7 +80,7 @@ func BodyJump(force *Force, jump *Jump, jumpPressed bool) {
 		// If the body can jump, and if it is on the ground (kind of... coyote time)
 		if jump.Jumps > 0 && jump.AirTime < 5 {
 			// How high it goes (and the actual jump part)
-			force.Acceleration.Y = -5
+			force.Acceleration.Y -= 5
 
 			// Take off an available jump
 			jump.Jumps -= 1
@@ -82,10 +94,14 @@ func BodyJump(force *Force, jump *Jump, jumpPressed bool) {
 	}
 }
 
-func BodyDash(force *Force, moveLeft, moveRight, dash bool) {
-	if dash && moveRight {
+func (force *Force) Dash(moveLeft, moveRight, dash bool) {
+	if !dash {
+		return
+	}
+
+	if moveRight {
 		force.Velocity.X = 30
-	} else if dash && moveLeft {
+	} else if moveLeft {
 		force.Velocity.X = -30
 	}
 }

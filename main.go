@@ -26,16 +26,7 @@ func main() {
 		// Updating
 		world.Update()
 
-		// Rendering
-		rl.BeginDrawing()
-
-		// Clear renderer with a white background
-		rl.ClearBackground(rl.RayWhite)
-
 		// Render entities
 		world.Render()
-
-		// End renderering and swap buffers
-		rl.EndDrawing()
 	}
 }

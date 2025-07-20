@@ -1,6 +1,9 @@
 package ecs
 
 import (
+	// Raylib
+	rl "github.com/gen2brain/raylib-go/raylib"
+
 	// Game packages
 	"github.com/plutial/game/gfx"
 	"github.com/plutial/game/physics"
@@ -16,6 +19,11 @@ type World struct {
 	// Entity count
 	Size int
 
+	// Delta time
+	DeltaTime    float32
+	CurrentTime  float32
+	PreviousTime float32
+
 	// Gravity
 	Gravity    float32
 	MaxGravity float32
@@ -24,10 +32,6 @@ type World struct {
 // Create a new world and its entities' components
 func NewWorld() World {
 	world := World{}
-
-	// Gravity
-	world.Gravity = 0.3
-	world.MaxGravity = 5
 
 	// ECS
 	world.ComponentPool = make(map[string]any)
@@ -57,14 +61,15 @@ func NewWorld() World {
 	// Create the player
 	world.NewPlayer()
 
+	// Gravity
+	world.Gravity = 0.3
+	world.MaxGravity = 5
+
 	return world
 }
 
 func (world *World) Update() {
-	// Take in input
-	world.UpdateInput()
-
-	// Movement
+	// Take in input and change it to movement
 	world.UpdateMovement()
 
 	// Attacking
@@ -73,10 +78,38 @@ func (world *World) Update() {
 	// Update the physics world
 	world.UpdatePhysics()
 
-	// Update the sprite after all the physics is finished
+	// Update the sprite after all the physics calculations have finished
 	world.UpdateSprite()
 }
 
+func (world *World) Render() {
+	// Begin rendering
+	rl.BeginDrawing()
+
+	// Clear renderer with a white background
+	rl.ClearBackground(rl.RayWhite)
+
+	// Get the entities which have the sprite component
+	entities := GetEntities[gfx.Sprite](world)
+
+	// For each entity, render its sprite
+	for _, id := range entities {
+		sprite := GetComponent[gfx.Sprite](world, id)
+
+		sprite.Render()
+	}
+
+	// End renderering and swap buffers
+	rl.EndDrawing()
+}
+
 func (world *World) Destroy() {
-	world.DestroyEntities()
+	// Unload all textures
+	entities := GetEntities[gfx.Sprite](world)
+
+	for _, id := range entities {
+		sprite := GetComponent[gfx.Sprite](world, id)
+
+		sprite.Destroy()
+	}
 }

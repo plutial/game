@@ -38,9 +38,7 @@ func BodyDynamicVsBody(bodyA Body, bodyB Body, velocity rl.Vector2) (collision b
 	}
 
 	// Calculate the start of the ray
-	var start rl.Vector2
-	start.X = bodyA.Position.X + bodyA.Size.X/2
-	start.Y = bodyA.Position.Y + bodyA.Size.Y/2
+	start := bodyA.Center()
 
 	// Create an expanded body to test the ray against
 	var bodyExpanded Body

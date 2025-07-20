@@ -19,23 +19,3 @@ func (world *World) UpdateSprite() {
 		sprite.DstPosition = body.Position
 	}
 }
-
-func (world *World) Render() {
-	entities := GetEntities[gfx.Sprite](world)
-
-	for _, id := range entities {
-		sprite := GetComponent[gfx.Sprite](world, id)
-
-		sprite.Render()
-	}
-}
-
-func (world *World) DestroyEntities() {
-	entities := GetEntities[gfx.Sprite](world)
-
-	for _, id := range entities {
-		sprite := GetComponent[gfx.Sprite](world, id)
-
-		sprite.Destroy()
-	}
-}

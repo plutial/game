@@ -89,9 +89,10 @@ func (world *World) UpdatePhysics() {
 		// Limit the gravity
 		force.Acceleration.Y = min(world.MaxGravity, force.Acceleration.Y)
 
-		// If the body is on the ground, set gravity to zero
+		// If the body is on the ground, lower the gravity
+		// Don't set it to zero, because, then, the entity is flying
 		if force.Collisions.Down {
-			force.Acceleration.Y = min(0, force.Acceleration.Y)
+			force.Acceleration.Y = min(world.Gravity, force.Acceleration.Y)
 		}
 
 		// Update acceleration

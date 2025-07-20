@@ -20,6 +20,8 @@ func (world *World) NewPlayer() {
 	// Add components
 	sprite := AddComponent[gfx.Sprite](world, id)
 	*sprite = gfx.NewSprite(gfx.NewTexture("assets/res/image.png"))
+	sprite.Texture.ID = 0
+	sprite.Color = rl.NewColor(0, 255, 0, 255)
 
 	// Body
 	body := AddComponent[physics.Body](world, id)

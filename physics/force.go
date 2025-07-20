@@ -14,8 +14,11 @@ type Collisions struct {
 
 // Movement and collisions
 type Force struct {
-	// Movement
-	Velocity, Acceleration rl.Vector2
+	// Instantaneous movement
+	Velocity rl.Vector2
+
+	// Persisting momentum
+	Acceleration rl.Vector2
 
 	// Maximum horizontal speed
 	Speed float32
