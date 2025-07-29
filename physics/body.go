@@ -13,6 +13,12 @@ func NewBody(position rl.Vector2, size rl.Vector2) Body {
 	return Body{position, size}
 }
 
+func (body *Body) Rectangle() rl.Rectangle {
+	rectangle := rl.NewRectangle(body.Position.X, body.Position.Y, body.Size.X, body.Size.Y)
+
+	return rectangle
+}
+
 func (body *Body) Center() rl.Vector2 {
 	var center rl.Vector2
 

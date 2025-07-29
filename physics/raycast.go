@@ -8,7 +8,7 @@ import (
 )
 
 // Where hit time is the time taken to hit the body (hitTime ranges from 0.0 to 1.0)
-func RayVsBody(start rl.Vector2, velocity rl.Vector2, body Body) (collision bool, hitTime float32, contactNormal rl.Vector2) {
+func (body *Body) VsRay(start rl.Vector2, velocity rl.Vector2) (collision bool, hitTime float32, contactNormal rl.Vector2) {
 	// Calculate near and far distance
 	near := rl.NewVector2(0, 0)
 	near.X = (body.Position.X - start.X) / velocity.X

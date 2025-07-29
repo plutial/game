@@ -64,3 +64,17 @@ func (collisions *Collisions) Update(contactNormal rl.Vector2) {
 		collisions.Down = true
 	}
 }
+
+func (force *Force) UpdateGravity() {
+	// Apply gravity
+	force.Acceleration.Y += 0.3
+
+	// Limit the gravity to 5
+	force.Acceleration.Y = min(5, force.Acceleration.Y)
+
+	// If the body is on the ground, lower the gravity
+	// Don't set it to zero, because, then, the entity is flying
+	if force.Collisions.Down {
+		force.Acceleration.Y = min(0.3, force.Acceleration.Y)
+	}
+}

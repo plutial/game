@@ -87,23 +87,26 @@ func (set *SparseSet[T]) GetAddress(index int) (*T, bool) {
 	page := index / SPARSE_SET_PAGES
 	position := index % SPARSE_SET_PAGES
 
+	// Check to see if the index is out of bounds
 	if len(set.sparse)*SPARSE_SET_PAGES <= index {
-		var temp T
-		return &temp, false
+		return nil, false
 	}
 
 	// Point the sparse set's index to the dense set's index
 	if set.sparse[page] == nil {
-		var temp T
-		return &temp, false
+		return nil, false
 	}
 
 	if set.sparse[page][position] == -1 {
-		var temp T
-		return &temp, false
+		return nil, false
 	}
 
 	denseIndex := set.sparse[page][position]
+
+	// If the dense index somehow is larger than the length of the slice
+	if denseIndex >= len(set.dense) {
+		panic("The dense index is greater than or equal to the length of the slice.")
+	}
 
 	// Add the value to the dense set
 	return &set.dense[denseIndex], true
@@ -112,19 +115,33 @@ func (set *SparseSet[T]) GetAddress(index int) (*T, bool) {
 func (set *SparseSet[T]) Get(index int) (T, bool) {
 	valueAddress, ok := set.GetAddress(index)
 
+	// If the value addres is nil ie. something went wrong
+	if valueAddress == nil {
+		var temp T
+		return temp, ok
+	}
+
 	return *valueAddress, ok
 }
 
 func (set *SparseSet[T]) Remove(index int) {
+	// Check if the index is valid in the first place
+	_, ok := set.Get(index)
+	if !ok {
+		return
+	}
+
+	// Check to see if the index is out of bounds
+	if len(set.sparse)*SPARSE_SET_PAGES <= index {
+		panic("Index out of bounds to remove.")
+	}
+
 	// Calculate the page and the position within the page
 	page := index / SPARSE_SET_PAGES
 	position := index % SPARSE_SET_PAGES
 
 	// Point the sparse set's index to the dense set's index
 	denseIndex := set.sparse[page][position]
-
-	// Change the original sparse to dense pointer to nil
-	set.sparse[page][position] = -1
 
 	// Set the last element of the dense set to the dense index
 	lastIndex := len(set.dense) - 1
@@ -140,6 +157,12 @@ func (set *SparseSet[T]) Remove(index int) {
 	swwappedPosition := swappedIndex % SPARSE_SET_PAGES
 
 	set.sparse[swappedPage][swwappedPosition] = index
+
+	// Change the original sparse to dense pointer to nil
+	// This should happen AFTER the swapped sparse pointer is corrected
+	// Otherwise, if the index is pointing at the last element,
+	// the sparse set isn't properly changed
+	set.sparse[page][position] = -1
 
 	// Remove the last elements of the dense sets
 	set.dense = set.dense[:lastIndex]

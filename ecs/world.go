@@ -1,6 +1,8 @@
 package ecs
 
 import (
+	"reflect"
+
 	// Raylib
 	rl "github.com/gen2brain/raylib-go/raylib"
 
@@ -19,14 +21,8 @@ type World struct {
 	// Entity count
 	Size int
 
-	// Delta time
-	DeltaTime    float32
-	CurrentTime  float32
-	PreviousTime float32
-
-	// Gravity
-	Gravity    float32
-	MaxGravity float32
+	// Entities to delete
+	ToDelete []int
 }
 
 // Create a new world and its entities' components
@@ -40,17 +36,7 @@ func NewWorld() World {
 	RegisterComponent[Alive](&world)
 
 	// Register components
-	RegisterComponent[gfx.Sprite](&world)
-	RegisterComponent[physics.Body](&world)
-	RegisterComponent[physics.Force](&world)
-
-	// Entity traits
-	RegisterComponent[physics.Jump](&world)
-
-	// Tags
-	RegisterComponent[PlayerTag](&world)
-	RegisterComponent[EnemyTag](&world)
-	RegisterComponent[TileTag](&world)
+	world.RegisterComponents()
 
 	// Load maps
 	world.LoadMap("assets/maps/map0.json")
@@ -61,11 +47,24 @@ func NewWorld() World {
 	// Create the player
 	world.NewPlayer()
 
-	// Gravity
-	world.Gravity = 0.3
-	world.MaxGravity = 5
-
 	return world
+}
+
+func (world *World) RegisterComponents() {
+	// Sprite for rendering
+	RegisterComponent[gfx.Sprite](world)
+
+	// Physics components
+	RegisterComponent[physics.Body](world)
+	RegisterComponent[physics.Force](world)
+
+	// Entity traits
+	RegisterComponent[physics.Jump](world)
+
+	// Tags
+	RegisterComponent[PlayerTag](world)
+	RegisterComponent[EnemyTag](world)
+	RegisterComponent[TileTag](world)
 }
 
 func (world *World) Update() {
@@ -80,6 +79,9 @@ func (world *World) Update() {
 
 	// Update the sprite after all the physics calculations have finished
 	world.UpdateSprite()
+
+	// Delete entites which need to be deleted
+	world.DeleteEntities()
 }
 
 func (world *World) Render() {
@@ -101,6 +103,30 @@ func (world *World) Render() {
 
 	// End renderering and swap buffers
 	rl.EndDrawing()
+}
+
+func (world *World) DeleteEntities() {
+	for _, id := range world.ToDelete {
+		// Check that the entity is alive before removing the alive component
+		if !world.IsEntityAlive(id) {
+			continue
+		}
+
+		// Remove all of the entity's components
+		for _, value := range world.ComponentPool {
+			value := reflect.ValueOf(value)
+			in := make([]reflect.Value, 0)
+			in = append(in, reflect.ValueOf(id))
+
+			removeMethod := value.MethodByName("Remove")
+			if removeMethod.IsValid() {
+				removeMethod.Call(in)
+			}
+		}
+	}
+
+	// Reset the list
+	world.ToDelete = make([]int, 0)
 }
 
 func (world *World) Destroy() {

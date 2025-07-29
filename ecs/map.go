@@ -70,14 +70,14 @@ func (world *World) LoadMap(path string) {
 			*sprite = gfx.NewSprite(tileTexture)
 
 			// Source rectangle
-			sprite.SrcPosition.X = float32((tileSourceId-1)%int(tileTexture.Width/16)) * 16
-			sprite.SrcPosition.Y = float32((tileSourceId-1)/int(tileTexture.Width/16)) * 16
+			sprite.Source.Position.X = float32((tileSourceId-1)%int(tileTexture.Width/16)) * 16
+			sprite.Source.Position.Y = float32((tileSourceId-1)/int(tileTexture.Width/16)) * 16
 
-			sprite.SrcSize = rl.NewVector2(16, 16)
+			sprite.Source.Size = rl.NewVector2(16, 16)
 
 			// Destination rectangle
-			sprite.DstPosition = rl.NewVector2(float32(x)*16, float32(y)*16)
-			sprite.DstSize = rl.NewVector2(16, 16)
+			sprite.Destination.Position = rl.NewVector2(float32(x)*16, float32(y)*16)
+			sprite.Destination.Size = rl.NewVector2(16, 16)
 
 			// Create the physics body
 			body := AddComponent[physics.Body](world, id)

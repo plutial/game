@@ -49,8 +49,8 @@ func (world *World) EntityAttack() {
 		// Raycast an attack if the enemy is in range
 		if physics.GetDistance(playerBody.Position, enemyBody.Position) < 80 {
 			movement := rl.NewVector2(
-				enemyBody.Position.X-playerBody.Position.X,
-				enemyBody.Position.Y-playerBody.Position.Y,
+				enemyBody.Center().X-playerBody.Center().X,
+				enemyBody.Center().Y-playerBody.Center().Y,
 			)
 
 			// Check if the ray is blocked by any of the tiles
@@ -63,14 +63,14 @@ func (world *World) EntityAttack() {
 
 				// Carry out a broad phase to stop handling
 				// Minimize expensive physics on absurd tiles that will never collide with
-				collision := physics.BodyBroadPhase(*playerBody, *tileBody, movement)
+				collision := playerBody.BroadPhase(*tileBody, movement)
 
 				if !collision {
 					continue
 				}
 
 				// Check for collision
-				collision, _, _ = physics.RayVsBody(center, movement, *tileBody)
+				collision, _, _ = tileBody.VsRay(center, movement)
 
 				if collision {
 					blocked = true

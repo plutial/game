@@ -1,6 +1,6 @@
 package ecs
 
-// Entity exist component
+// Does the entity exist
 type Alive bool
 
 // Check if an entity is alive
@@ -40,6 +40,11 @@ func (world *World) NewEntity() int {
 
 // Delete an entity
 func (world *World) DeleteEntity(id int) {
-	componentSet := GetComponentSet[Alive](world)
-	componentSet.Remove(id)
+	// Check that the entity is alive before adding it to the delete table
+	if !world.IsEntityAlive(id) {
+		return
+	}
+
+	// Add the entity to the list to remove
+	world.ToDelete = append(world.ToDelete, id)
 }

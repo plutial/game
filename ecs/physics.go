@@ -23,14 +23,14 @@ func (world *World) UpdateTilePhysics(body *physics.Body, force *physics.Force, 
 
 		// Carry out a broad phase to stop handling
 		// Minimize expensive physics on absurd tiles that will never collide with
-		collision := physics.BodyBroadPhase(*body, *tileBody, force.Velocity)
+		collision := body.BroadPhase(*tileBody, force.Velocity)
 
 		if !collision {
 			continue
 		}
 
 		// Check for collision
-		collision, _, _ = physics.BodyDynamicVsBody(*body, *tileBody, force.Velocity)
+		collision, _, _ = body.DynamicVsBody(*tileBody, force.Velocity)
 
 		if collision {
 			// Get the distance from the body to the tile
@@ -58,7 +58,7 @@ func (world *World) UpdateTilePhysics(body *physics.Body, force *physics.Force, 
 
 		tileBody := GetComponent[physics.Body](world, tileId)
 
-		collision, velocityResolve, contactNormal := physics.BodyDynamicVsBodyResolve(*body, *tileBody, force.Velocity)
+		collision, velocityResolve, contactNormal := physics.DynamicVsBodyResolve(*body, *tileBody, force.Velocity)
 
 		if collision {
 			// Update the collision velocity
@@ -84,16 +84,7 @@ func (world *World) UpdatePhysics() {
 		force := GetComponent[physics.Force](world, id)
 
 		// Apply gravity
-		force.Acceleration.Y += world.Gravity
-
-		// Limit the gravity
-		force.Acceleration.Y = min(world.MaxGravity, force.Acceleration.Y)
-
-		// If the body is on the ground, lower the gravity
-		// Don't set it to zero, because, then, the entity is flying
-		if force.Collisions.Down {
-			force.Acceleration.Y = min(world.Gravity, force.Acceleration.Y)
-		}
+		force.UpdateGravity()
 
 		// Update acceleration
 		force.Velocity.X += force.Acceleration.X

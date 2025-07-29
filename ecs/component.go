@@ -66,7 +66,11 @@ func GetComponent[T any](world *World, id int) *T {
 	// Check if the entity has the component
 	if !ok {
 		// Send an error message
-		log.Fatal("Entity %v is either not alive and/or does not have the component %v", id, util.GetType[T]())
+		message := fmt.Sprintf(
+			"Entity %v is either not alive and/or does not have the component %v",
+			id, util.GetType[T](),
+		)
+		log.Fatal(message)
 		return nil
 	}
 
@@ -78,6 +82,12 @@ func GetEntities[A any](world *World) []int {
 	entities := make([]int, 0)
 
 	for id := range world.Size {
+		// Check that entity is alive
+		if !world.IsEntityAlive(id) {
+			continue
+		}
+
+		// Add to the slice if the entity has all the required components
 		if HasComponent[A](world, id) {
 			entities = append(entities, id)
 		}
@@ -90,6 +100,12 @@ func GetEntities2[A, B any](world *World) []int {
 	entities := make([]int, 0)
 
 	for id := range world.Size {
+		// Check that entity is alive
+		if !world.IsEntityAlive(id) {
+			continue
+		}
+
+		// Add to the slice if the entity has all the required components
 		if HasComponent[A](world, id) && HasComponent[B](world, id) {
 			entities = append(entities, id)
 		}

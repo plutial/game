@@ -16,6 +16,6 @@ func (world *World) UpdateSprite() {
 		body := GetComponent[physics.Body](world, id)
 
 		// Update the position of the sprite
-		sprite.DstPosition = body.Position
+		sprite.Destination.Position = body.Position
 	}
 }
