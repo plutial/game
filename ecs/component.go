@@ -57,6 +57,12 @@ func AddComponent[T any](world *World, id int) *T {
 	return address
 }
 
+// Remove a component from an entity
+func RemoveComponent[T any](world *World, id int) {
+	componentSet := GetComponentSet[T](world)
+	componentSet.Delete(id)
+}
+
 // Get the address of the component
 func GetComponent[T any](world *World, id int) *T {
 	componentSet := GetComponentSet[T](world)
@@ -78,6 +84,7 @@ func GetComponent[T any](world *World, id int) *T {
 	return address
 }
 
+// Returns a slice of entity ids which have component A
 func GetEntities[A any](world *World) []int {
 	entities := make([]int, 0)
 
@@ -96,6 +103,7 @@ func GetEntities[A any](world *World) []int {
 	return entities
 }
 
+// Returns a slice of entity ids which have component A and B
 func GetEntities2[A, B any](world *World) []int {
 	entities := make([]int, 0)
 

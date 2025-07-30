@@ -68,6 +68,10 @@ func (world *World) RegisterComponents() {
 }
 
 func (world *World) Update() {
+	// Delete entities which need to be deleted
+	// Delete entities at the start of the loop to manages entites more easily
+	world.DeleteEntities()
+
 	// Take in input and change it to movement
 	world.UpdateMovement()
 
@@ -79,9 +83,6 @@ func (world *World) Update() {
 
 	// Update the sprite after all the physics calculations have finished
 	world.UpdateSprite()
-
-	// Delete entites which need to be deleted
-	world.DeleteEntities()
 }
 
 func (world *World) Render() {
@@ -118,9 +119,11 @@ func (world *World) DeleteEntities() {
 			in := make([]reflect.Value, 0)
 			in = append(in, reflect.ValueOf(id))
 
-			removeMethod := value.MethodByName("Remove")
-			if removeMethod.IsValid() {
-				removeMethod.Call(in)
+			deleteMethod := value.MethodByName("Delete")
+			if deleteMethod.IsValid() {
+				deleteMethod.Call(in)
+			} else {
+				panic("Delete method for sparse set not found")
 			}
 		}
 	}

@@ -124,7 +124,7 @@ func (set *SparseSet[T]) Get(index int) (T, bool) {
 	return *valueAddress, ok
 }
 
-func (set *SparseSet[T]) Remove(index int) {
+func (set *SparseSet[T]) Delete(index int) {
 	// Check if the index is valid in the first place
 	_, ok := set.Get(index)
 	if !ok {
