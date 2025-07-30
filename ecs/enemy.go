@@ -1,9 +1,6 @@
 package ecs
 
 import (
-	// Raylib
-	rl "github.com/gen2brain/raylib-go/raylib"
-
 	// Game packages
 	"github.com/plutial/game/gfx"
 	"github.com/plutial/game/physics"
@@ -25,15 +22,15 @@ func (world *World) NewEnemy() {
 	// Body
 	body := AddComponent[physics.Body](world, id)
 
-	position := rl.NewVector2(50, 0)
-	size := rl.NewVector2(16, 16)
+	position := physics.NewVector2(50, 0)
+	size := physics.NewVector2(16, 16)
 
 	*body = physics.NewBody(position, size)
 
 	// Force
 	force := AddComponent[physics.Force](world, id)
 
-	*force = physics.NewForce(rl.NewVector2(0, 0), rl.NewVector2(0, 0))
+	*force = physics.NewForce(physics.NewVector2(0, 0), physics.NewVector2(0, 0))
 
 	// Jump
 	AddComponent[physics.Jump](world, id)

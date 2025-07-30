@@ -2,9 +2,6 @@ package physics
 
 import (
 	"math"
-
-	// Raylib
-	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 func (bodyA *Body) StaticVsBody(bodyB Body) (collision bool) {
@@ -18,7 +15,7 @@ func (bodyA *Body) StaticVsBody(bodyB Body) (collision bool) {
 	return xCollision && yCollision
 }
 
-func (bodyA *Body) BroadPhase(bodyB Body, velocity rl.Vector2) (collision bool) {
+func (bodyA *Body) BroadPhase(bodyB Body, velocity Vector2) (collision bool) {
 	// Calculate the broad phase body
 	var bodyBroadPhase Body
 	if velocity.X > 0 {
@@ -38,10 +35,10 @@ func (bodyA *Body) BroadPhase(bodyB Body, velocity rl.Vector2) (collision bool) 
 	return bodyBroadPhase.StaticVsBody(bodyB)
 }
 
-func (bodyA *Body) DynamicVsBody(bodyB Body, velocity rl.Vector2) (collision bool, hitTime float32, contactNormal rl.Vector2) {
+func (bodyA *Body) DynamicVsBody(bodyB Body, velocity Vector2) (collision bool, hitTime float64, contactNormal Vector2) {
 	// If the body didn't move, it's not worth it to test for collision
 	if velocity.X == 0 && velocity.Y == 0 {
-		return false, 1.0, rl.NewVector2(0, 0)
+		return false, 1.0, NewVector2(0, 0)
 	}
 
 	// Calculate the start of the ray
@@ -61,13 +58,13 @@ func (bodyA *Body) DynamicVsBody(bodyB Body, velocity rl.Vector2) (collision boo
 	return collision && hitTime >= 0 && hitTime < 1, hitTime, contactNormal
 }
 
-func DynamicVsBodyResolve(bodyA Body, bodyB Body, velocity rl.Vector2) (collision bool, velocityResolve rl.Vector2, contactNormal rl.Vector2) {
+func DynamicVsBodyResolve(bodyA, bodyB Body, velocity Vector2) (collision bool, velocityResolve Vector2, contactNormal Vector2) {
 	collision, hitTime, contactNormal := bodyA.DynamicVsBody(bodyB, velocity)
 
 	// Handle collision
 	if collision {
-		velocity.X += contactNormal.X * float32(math.Abs(float64(velocity.X*(1-hitTime))))
-		velocity.Y += contactNormal.Y * float32(math.Abs(float64(velocity.Y*(1-hitTime))))
+		velocity.X += contactNormal.X * math.Abs(velocity.X*(1-hitTime))
+		velocity.Y += contactNormal.Y * math.Abs(velocity.Y*(1-hitTime))
 	}
 
 	velocityResolve = velocity
@@ -75,6 +72,6 @@ func DynamicVsBodyResolve(bodyA Body, bodyB Body, velocity rl.Vector2) (collisio
 	return collision, velocityResolve, contactNormal
 }
 
-func (body *Body) VsBodiesResolve(bodies []Body, velocity rl.Vector2) (velocityResolve rl.Vector2, contactNormal rl.Vector2) {
-	return velocity, rl.NewVector2(0, 0)
+func (body *Body) VsBodiesResolve(bodies []Body, velocity Vector2) (velocityResolve, contactNormal Vector2) {
+	return velocity, NewVector2(0, 0)
 }

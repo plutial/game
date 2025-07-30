@@ -2,10 +2,16 @@ package physics
 
 import (
 	"math"
-
-	// Raylib
-	rl "github.com/gen2brain/raylib-go/raylib"
 )
+
+// Stores an x and a y
+type Vector2 struct {
+	X, Y float64
+}
+
+func NewVector2(x, y float64) Vector2 {
+	return Vector2{x, y}
+}
 
 // Collisions are going to be inside force
 type Collisions struct {
@@ -15,19 +21,19 @@ type Collisions struct {
 // Movement and collisions
 type Force struct {
 	// Instantaneous movement
-	Velocity rl.Vector2
+	Velocity Vector2
 
 	// Persisting momentum
-	Acceleration rl.Vector2
+	Acceleration Vector2
 
 	// Maximum horizontal speed
-	Speed float32
+	Speed float64
 
 	// Collisions
 	Collisions Collisions
 }
 
-func NewForce(velocity rl.Vector2, acceleration rl.Vector2) Force {
+func NewForce(velocity, acceleration Vector2) Force {
 	force := Force{}
 
 	force.Velocity = velocity
@@ -41,17 +47,17 @@ func NewForce(velocity rl.Vector2, acceleration rl.Vector2) Force {
 }
 
 // Just pythagoras
-func GetDistance(a, b rl.Vector2) float32 {
-	return float32(math.Sqrt(math.Pow(float64(a.X-b.X), 2) + math.Pow(float64(a.Y-b.Y), 2)))
+func (a *Vector2) GetDistance(b Vector2) float64 {
+	return math.Sqrt(math.Pow(a.X-b.X, 2) + math.Pow(a.Y-b.Y, 2))
 }
 
 // Rounding
-func Round(x, unit float32) float32 {
-	return float32(math.Round(float64(x/unit))) * unit
+func Round(x, unit float64) float64 {
+	return math.Round(x/unit) * unit
 }
 
 // Update the collisions
-func (collisions *Collisions) Update(contactNormal rl.Vector2) {
+func (collisions *Collisions) Update(contactNormal Vector2) {
 	if contactNormal.X == 1 {
 		collisions.Left = true
 	} else if contactNormal.X == -1 {

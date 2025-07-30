@@ -12,7 +12,7 @@ func (world *World) UpdateTilePhysics(body *physics.Body, force *physics.Force, 
 	// Slice to store tiles which have collided
 	type TileCollisionData struct {
 		TileId   int
-		Distance float32
+		Distance float64
 	}
 
 	tileCollisionData := make([]TileCollisionData, 0)
@@ -34,7 +34,7 @@ func (world *World) UpdateTilePhysics(body *physics.Body, force *physics.Force, 
 
 		if collision {
 			// Get the distance from the body to the tile
-			distance := physics.GetDistance(body.Position, tileBody.Position)
+			distance := body.Position.GetDistance(tileBody.Position)
 
 			data := TileCollisionData{tileId, distance}
 

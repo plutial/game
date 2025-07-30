@@ -3,9 +3,6 @@ package ecs
 import (
 	"reflect"
 
-	// Raylib
-	rl "github.com/gen2brain/raylib-go/raylib"
-
 	// Game packages
 	"github.com/plutial/game/gfx"
 	"github.com/plutial/game/physics"
@@ -86,12 +83,6 @@ func (world *World) Update() {
 }
 
 func (world *World) Render() {
-	// Begin rendering
-	rl.BeginDrawing()
-
-	// Clear renderer with a white background
-	rl.ClearBackground(rl.RayWhite)
-
 	// Get the entities which have the sprite component
 	entities := GetEntities[gfx.Sprite](world)
 
@@ -101,9 +92,6 @@ func (world *World) Render() {
 
 		sprite.Render()
 	}
-
-	// End renderering and swap buffers
-	rl.EndDrawing()
 }
 
 func (world *World) DeleteEntities() {
@@ -130,15 +118,4 @@ func (world *World) DeleteEntities() {
 
 	// Reset the list
 	world.ToDelete = make([]int, 0)
-}
-
-func (world *World) Destroy() {
-	// Unload all textures
-	entities := GetEntities[gfx.Sprite](world)
-
-	for _, id := range entities {
-		sprite := GetComponent[gfx.Sprite](world, id)
-
-		sprite.Destroy()
-	}
 }

@@ -5,9 +5,6 @@ import (
 	"io/ioutil"
 	"log"
 
-	// Raylib
-	rl "github.com/gen2brain/raylib-go/raylib"
-
 	// Game packages
 	"github.com/plutial/game/gfx"
 	"github.com/plutial/game/physics"
@@ -70,20 +67,25 @@ func (world *World) LoadMap(path string) {
 			*sprite = gfx.NewSprite(tileTexture)
 
 			// Source rectangle
-			sprite.Source.Position.X = float32((tileSourceId-1)%int(tileTexture.Width/16)) * 16
-			sprite.Source.Position.Y = float32((tileSourceId-1)/int(tileTexture.Width/16)) * 16
+			textureSize := physics.NewVector2(
+				float64(tileTexture.Bounds().Dx()),
+				float64(tileTexture.Bounds().Dy()),
+			)
 
-			sprite.Source.Size = rl.NewVector2(16, 16)
+			sprite.Source.Position.X = float64((tileSourceId-1)%int(int(textureSize.X)/16)) * 16
+			sprite.Source.Position.Y = float64((tileSourceId-1)/int(int(textureSize.Y)/16)) * 16
+
+			sprite.Source.Size = physics.NewVector2(16, 16)
 
 			// Destination rectangle
-			sprite.Destination.Position = rl.NewVector2(float32(x)*16, float32(y)*16)
-			sprite.Destination.Size = rl.NewVector2(16, 16)
+			sprite.Destination.Position = physics.NewVector2(float64(x)*16, float64(y)*16)
+			sprite.Destination.Size = physics.NewVector2(16, 16)
 
 			// Create the physics body
 			body := AddComponent[physics.Body](world, id)
 
-			position := rl.NewVector2(float32(x)*16, float32(y)*16)
-			size := rl.NewVector2(16, 16)
+			position := physics.NewVector2(float64(x)*16, float64(y)*16)
+			size := physics.NewVector2(16, 16)
 
 			*body = physics.NewBody(position, size)
 		}

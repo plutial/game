@@ -2,19 +2,16 @@ package physics
 
 import (
 	"math"
-
-	// Raylib
-	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 // Where hit time is the time taken to hit the body (hitTime ranges from 0.0 to 1.0)
-func (body *Body) VsRay(start rl.Vector2, velocity rl.Vector2) (collision bool, hitTime float32, contactNormal rl.Vector2) {
+func (body *Body) VsRay(start, velocity Vector2) (collision bool, hitTime float64, contactNormal Vector2) {
 	// Calculate near and far distance
-	near := rl.NewVector2(0, 0)
+	near := NewVector2(0, 0)
 	near.X = (body.Position.X - start.X) / velocity.X
 	near.Y = (body.Position.Y - start.Y) / velocity.Y
 
-	far := rl.NewVector2(0, 0)
+	far := NewVector2(0, 0)
 	far.X = (body.Position.X + body.Size.X - start.X) / velocity.X
 	far.Y = (body.Position.Y + body.Size.Y - start.Y) / velocity.Y
 
@@ -30,11 +27,11 @@ func (body *Body) VsRay(start rl.Vector2, velocity rl.Vector2) (collision bool, 
 	// This is a fix for a specific case
 	// Do not forget to implement this in other projects, it causes lots of problems
 	if math.IsNaN(float64(near.X)) || math.IsNaN(float64(near.Y)) {
-		return false, 1.0, rl.NewVector2(0, 0)
+		return false, 1.0, NewVector2(0, 0)
 	}
 
 	if math.IsNaN(float64(far.X)) || math.IsNaN(float64(far.Y)) {
-		return false, 1.0, rl.NewVector2(0, 0)
+		return false, 1.0, NewVector2(0, 0)
 	}
 
 	// Check if the ray goes through the body
@@ -43,20 +40,20 @@ func (body *Body) VsRay(start rl.Vector2, velocity rl.Vector2) (collision bool, 
 		// As it means that the ray would have gone through the body fully
 		// The contact normal would also be (0.0, 0.0)
 		// As it means that there was no collision
-		return false, 1.0, rl.NewVector2(0, 0)
+		return false, 1.0, NewVector2(0, 0)
 	}
 
 	// If the collision is somehow behind the ray, return false
 	hitFar := min(far.X, far.Y)
 	if hitFar < 0 {
-		return false, 1.0, rl.NewVector2(0, 0)
+		return false, 1.0, NewVector2(0, 0)
 	}
 
 	// Get the hit time and the normal if there was a collision
 	hitTime = max(near.X, near.Y)
 
 	// Contact normal
-	contactNormal = rl.NewVector2(0, 0)
+	contactNormal = NewVector2(0, 0)
 
 	if near.X > near.Y {
 		if velocity.X < 0 {

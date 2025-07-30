@@ -1,8 +1,9 @@
 package ecs
 
 import (
-	// Raylib
-	rl "github.com/gen2brain/raylib-go/raylib"
+	// Ebitengine
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 
 	// Game packages
 	"github.com/plutial/game/physics"
@@ -16,18 +17,18 @@ func (world *World) UpdateMovement() {
 	force := GetComponent[physics.Force](world, playerId)
 
 	// Horizontal movement
-	force.Move(rl.IsKeyDown(rl.KeyA), rl.IsKeyDown(rl.KeyD))
-	force.Dash(rl.IsKeyDown(rl.KeyA), rl.IsKeyDown(rl.KeyD), rl.IsKeyPressed(rl.KeySpace))
+	force.Move(ebiten.IsKeyPressed(ebiten.KeyA), ebiten.IsKeyPressed(ebiten.KeyD))
+	force.Dash(ebiten.IsKeyPressed(ebiten.KeyA), ebiten.IsKeyPressed(ebiten.KeyD), inpututil.IsKeyJustPressed(ebiten.KeySpace))
 
 	// Update jumps
 	jump := GetComponent[physics.Jump](world, playerId)
 
-	force.Jump(jump, rl.IsKeyPressed(rl.KeyW))
+	force.Jump(jump, inpututil.IsKeyJustPressed(ebiten.KeyW))
 }
 
 func (world *World) EntityAttack() {
 	// Dismiss if the player does not attack
-	if !rl.IsMouseButtonPressed(rl.MouseButtonLeft) {
+	if !inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		return
 	}
 
@@ -47,8 +48,8 @@ func (world *World) EntityAttack() {
 		enemyForce := GetComponent[physics.Force](world, enemyId)
 
 		// Raycast an attack if the enemy is in range
-		if physics.GetDistance(playerBody.Position, enemyBody.Position) < 80 {
-			movement := rl.NewVector2(
+		if playerBody.Position.GetDistance(enemyBody.Position) < 80 {
+			movement := physics.NewVector2(
 				enemyBody.Center().X-playerBody.Center().X,
 				enemyBody.Center().Y-playerBody.Center().Y,
 			)

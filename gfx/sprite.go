@@ -1,19 +1,21 @@
 package gfx
 
 import (
+	"image/color"
+
+	// Ebitengine
+	"github.com/hajimehoshi/ebiten/v2"
+
 	// Game packages
 	"github.com/plutial/game/physics"
-
-	// Raylib
-	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
 type Sprite struct {
-	// The texture itself
-	Texture rl.Texture2D
+	// The image itself
+	Image *ebiten.Image
 
 	// The color the sprite will render with if the texture is nil
-	Color rl.Color
+	Color color.RGBA
 
 	// The source co-ordinates and size
 	Source physics.Body
@@ -22,21 +24,21 @@ type Sprite struct {
 	Destination physics.Body
 }
 
-func NewSprite(texture rl.Texture2D) Sprite {
+func NewSprite(texture *ebiten.Image) Sprite {
 	var sprite Sprite
 
-	// Load the texture
-	sprite.Texture = texture
+	// The image (renamed to texture to avoid clash with the image package)
+	sprite.Image = texture
 
-	// Set the color
-	sprite.Color = rl.White
+	// Set the color (white)
+	sprite.Color = color.RGBA{255, 255, 255, 255}
 
 	// Set the default position and size values
 	sprite.Source = physics.NewBody(
-		rl.NewVector2(0, 0), rl.NewVector2(float32(texture.Width), float32(texture.Height)),
+		physics.NewVector2(0, 0), physics.NewVector2(16, 16),
 	)
 	sprite.Destination = physics.NewBody(
-		rl.NewVector2(0, 0), rl.NewVector2(float32(texture.Width), float32(texture.Height)),
+		physics.NewVector2(0, 0), physics.NewVector2(16, 16),
 	)
 
 	return sprite
@@ -44,15 +46,14 @@ func NewSprite(texture rl.Texture2D) Sprite {
 
 func (sprite *Sprite) Render() {
 	// If there is no texture, render a colored rectangle
-	if sprite.Texture.ID <= 0 {
+	if sprite.Image == nil {
 		RenderRectangle(sprite.Color, sprite.Destination)
 	} else {
 		// Draw the rectangle with the texture
-		RenderTexture(sprite.Texture, sprite.Source, sprite.Destination)
+		RenderTexture(sprite.Image, sprite.Source, sprite.Destination)
 	}
 }
 
 func (sprite *Sprite) Destroy() {
-	// Unload texture
-	DestroyTexture(sprite.Texture)
+	// TODO: Unload texture
 }
