@@ -62,6 +62,7 @@ func (world *World) RegisterComponents() {
 	RegisterComponent[PlayerTag](world)
 	RegisterComponent[EnemyTag](world)
 	RegisterComponent[TileTag](world)
+	RegisterComponent[ProjectileTag](world)
 }
 
 func (world *World) Update() {

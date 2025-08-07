@@ -5,7 +5,8 @@ import (
 )
 
 const (
-	SPARSE_SET_PAGES = 10
+	SPARSE_SET_PAGES      = 10
+	SPARSE_SET_NULL_INDEX = -1
 )
 
 type SparseSet[T any] struct {
@@ -56,7 +57,7 @@ func (set *SparseSet[T]) Add(index int, value T) {
 		set.sparse[page] = make([]int, SPARSE_SET_PAGES)
 
 		for i := range set.sparse[index/SPARSE_SET_PAGES] {
-			set.sparse[page][i] = -1
+			set.sparse[page][i] = SPARSE_SET_NULL_INDEX
 		}
 	}
 
@@ -97,7 +98,7 @@ func (set *SparseSet[T]) GetAddress(index int) (*T, bool) {
 		return nil, false
 	}
 
-	if set.sparse[page][position] == -1 {
+	if set.sparse[page][position] == SPARSE_SET_NULL_INDEX {
 		return nil, false
 	}
 
@@ -156,13 +157,14 @@ func (set *SparseSet[T]) Delete(index int) {
 	swappedPage := swappedIndex / SPARSE_SET_PAGES
 	swwappedPosition := swappedIndex % SPARSE_SET_PAGES
 
-	set.sparse[swappedPage][swwappedPosition] = index
+	// Dense index is the original position of the item
+	set.sparse[swappedPage][swwappedPosition] = denseIndex
 
 	// Change the original sparse to dense pointer to nil
 	// This should happen AFTER the swapped sparse pointer is corrected
 	// Otherwise, if the index is pointing at the last element,
 	// the sparse set isn't properly changed
-	set.sparse[page][position] = -1
+	set.sparse[page][position] = SPARSE_SET_NULL_INDEX
 
 	// Remove the last elements of the dense sets
 	set.dense = set.dense[:lastIndex]

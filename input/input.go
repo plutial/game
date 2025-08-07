@@ -4,6 +4,9 @@ import (
 	// Ebitengine
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
+
+	// Game packages
+	"github.com/plutial/game/physics"
 )
 
 // Keys.
@@ -160,4 +163,9 @@ func IsMouseButtonPressed(mouseButton int) bool {
 
 func IsMouseButtonDown(mouseButton int) bool {
 	return ebiten.IsMouseButtonPressed(ebiten.MouseButton(mouseButton))
+}
+
+func MousePosition() physics.Vector2 {
+	x, y := ebiten.CursorPosition()
+	return physics.NewVector2(float64(x), float64(y))
 }

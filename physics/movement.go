@@ -37,6 +37,11 @@ func (force *Force) Move(moveLeft bool, moveRight bool) {
 		// Limit the momentum
 		force.Acceleration.X = min(force.Speed, force.Acceleration.X)
 	}
+
+	// If there is horizontal collision, half the acceleration
+	if force.Collisions.Left || force.Collisions.Right {
+		force.Acceleration.X /= 2
+	}
 }
 
 func (force *Force) Jump(jump *Jump, jumpPressed bool) {

@@ -34,11 +34,20 @@ func NewSprite(texture *ebiten.Image) Sprite {
 	sprite.Color = color.RGBA{255, 255, 255, 255}
 
 	// Set the default position and size values
+	// The sizes will be the size of the image
 	sprite.Source = physics.NewBody(
-		physics.NewVector2(0, 0), physics.NewVector2(16, 16),
+		physics.NewVector2(0, 0),
+		physics.NewVector2(
+			float64(sprite.Image.Bounds().Dx()),
+			float64(sprite.Image.Bounds().Dy()),
+		),
 	)
 	sprite.Destination = physics.NewBody(
-		physics.NewVector2(0, 0), physics.NewVector2(16, 16),
+		physics.NewVector2(0, 0),
+		physics.NewVector2(
+			float64(sprite.Image.Bounds().Dx()),
+			float64(sprite.Image.Bounds().Dy()),
+		),
 	)
 
 	return sprite

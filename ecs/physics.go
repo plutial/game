@@ -34,7 +34,7 @@ func (world *World) UpdateTilePhysics(body *physics.Body, force *physics.Force, 
 
 		if collision {
 			// Get the distance from the body to the tile
-			distance := body.Position.GetDistance(tileBody.Position)
+			distance := body.Position.Distance(tileBody.Position)
 
 			data := TileCollisionData{tileId, distance}
 
@@ -84,7 +84,10 @@ func (world *World) UpdatePhysics() {
 		force := GetComponent[physics.Force](world, id)
 
 		// Apply gravity
-		force.UpdateGravity()
+		// Projectiles aren't affected
+		if !HasComponent[ProjectileTag](world, id) {
+			force.UpdateGravity()
+		}
 
 		// Update acceleration
 		force.Velocity.X += force.Acceleration.X

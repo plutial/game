@@ -9,30 +9,29 @@ import (
 	"github.com/plutial/game/gfx"
 )
 
-// Global game variable
-var g Game
+type Game struct{}
 
-type Game struct {
-	World ecs.World
-}
+// Global world
+var world ecs.World
 
 func Init(width, height int, title string) {
 	ebiten.SetWindowSize(width, height)
 	ebiten.SetWindowTitle(title)
 
 	// Create the game world
-	g.World = ecs.NewWorld()
+	world = ecs.NewWorld()
 }
 
 func Run() {
-	if err := ebiten.RunGame(&g); err != nil {
+	game := Game{}
+	if err := ebiten.RunGame(&game); err != nil {
 		panic(err)
 	}
 }
 
 func (game *Game) Update() error {
 	// Updating
-	game.World.Update()
+	world.Update()
 
 	return nil
 }
@@ -42,7 +41,7 @@ func (game *Game) Draw(screen *ebiten.Image) {
 	*gfx.GetScreen() = screen
 
 	// Render entities
-	game.World.Render()
+	world.Render()
 }
 
 func (game *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {

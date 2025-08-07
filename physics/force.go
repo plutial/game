@@ -47,7 +47,7 @@ func NewForce(velocity, acceleration Vector2) Force {
 }
 
 // Just pythagoras
-func (a *Vector2) GetDistance(b Vector2) float64 {
+func (a *Vector2) Distance(b Vector2) float64 {
 	return math.Sqrt(math.Pow(a.X-b.X, 2) + math.Pow(a.Y-b.Y, 2))
 }
 
@@ -69,6 +69,10 @@ func (collisions *Collisions) Update(contactNormal Vector2) {
 	} else if contactNormal.Y == -1 {
 		collisions.Down = true
 	}
+}
+
+func (collisions *Collisions) Collided() bool {
+	return collisions.Left || collisions.Right || collisions.Up || collisions.Down
 }
 
 func (force *Force) UpdateGravity() {
