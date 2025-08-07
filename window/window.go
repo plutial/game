@@ -3,7 +3,6 @@ package window
 import (
 	// Ebitengine
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 
 	// Game packages
 	"github.com/plutial/game/ecs"

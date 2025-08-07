@@ -1,11 +1,8 @@
 package ecs
 
 import (
-	// Ebitengine
-	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/inpututil"
-
 	// Game packages
+	"github.com/plutial/game/input"
 	"github.com/plutial/game/physics"
 )
 
@@ -17,18 +14,18 @@ func (world *World) UpdateMovement() {
 	force := GetComponent[physics.Force](world, playerId)
 
 	// Horizontal movement
-	force.Move(ebiten.IsKeyPressed(ebiten.KeyA), ebiten.IsKeyPressed(ebiten.KeyD))
-	force.Dash(ebiten.IsKeyPressed(ebiten.KeyA), ebiten.IsKeyPressed(ebiten.KeyD), inpututil.IsKeyJustPressed(ebiten.KeySpace))
+	force.Move(input.IsKeyDown(input.KeyA), input.IsKeyDown(input.KeyD))
+	force.Dash(input.IsKeyDown(input.KeyA), input.IsKeyDown(input.KeyD), input.IsKeyPressed(input.KeySpace))
 
 	// Update jumps
 	jump := GetComponent[physics.Jump](world, playerId)
 
-	force.Jump(jump, inpututil.IsKeyJustPressed(ebiten.KeyW))
+	force.Jump(jump, input.IsKeyPressed(input.KeyW))
 }
 
 func (world *World) EntityAttack() {
 	// Dismiss if the player does not attack
-	if !inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
+	if !input.IsMouseButtonPressed(input.MouseButtonLeft) {
 		return
 	}
 
@@ -91,4 +88,7 @@ func (world *World) EntityAttack() {
 			}
 		}
 	}
+}
+
+func (world *World) EntityCharge() {
 }

@@ -75,6 +75,9 @@ func (world *World) Update() {
 	// Attacking
 	world.EntityAttack()
 
+	// Charging
+	world.EntityCharge()
+
 	// Update the physics world
 	world.UpdatePhysics()
 
