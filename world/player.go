@@ -1,29 +1,30 @@
-package ecs
+package world
 
 import (
 	"image/color"
 
 	// Game packages
+	"github.com/plutial/game/ecs"
 	"github.com/plutial/game/gfx"
 	"github.com/plutial/game/physics"
 )
 
 type PlayerTag bool
 
-func (world *World) NewPlayer() {
-	id := world.NewEntity()
+func NewPlayer(manager *ecs.Manager) {
+	id := manager.NewEntity()
 
 	// Assign a player tag to mark the player entity
-	AddComponent[PlayerTag](world, id)
+	ecs.AddComponent[PlayerTag](manager, id)
 
 	// Add components
-	sprite := AddComponent[gfx.Sprite](world, id)
+	sprite := ecs.AddComponent[gfx.Sprite](manager, id)
 	*sprite = gfx.NewSprite(gfx.NewTexture("assets/res/image.png"))
 	sprite.Image = nil
 	sprite.Color = color.RGBA{0, 255, 0, 255}
 
 	// Body
-	body := AddComponent[physics.Body](world, id)
+	body := ecs.AddComponent[physics.Body](manager, id)
 
 	position := physics.NewVector2(16, 16)
 	size := physics.NewVector2(16, 16)
@@ -31,9 +32,9 @@ func (world *World) NewPlayer() {
 	*body = physics.NewBody(position, size)
 
 	// Force
-	force := AddComponent[physics.Force](world, id)
+	force := ecs.AddComponent[physics.Force](manager, id)
 	*force = physics.NewForce(physics.NewVector2(0, 0), physics.NewVector2(0, 0))
 
 	// Jump
-	AddComponent[physics.Jump](world, id)
+	ecs.AddComponent[physics.Jump](manager, id)
 }

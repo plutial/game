@@ -1,14 +1,15 @@
-package ecs
+package world
 
 import (
 	"sort"
 
 	// Game packages
+	"github.com/plutial/game/ecs"
 	"github.com/plutial/game/physics"
 )
 
 // Update tile physics against a body with force
-func (world *World) UpdateTilePhysics(body *physics.Body, force *physics.Force, tiles []int) {
+func UpdateTilePhysics(manager *ecs.Manager, body *physics.Body, force *physics.Force, tiles []int) {
 	// Slice to store tiles which have collided
 	type TileCollisionData struct {
 		TileId   int
@@ -19,7 +20,7 @@ func (world *World) UpdateTilePhysics(body *physics.Body, force *physics.Force, 
 
 	// Check which tiles could collided with the body
 	for _, tileId := range tiles {
-		tileBody := GetComponent[physics.Body](world, tileId)
+		tileBody := ecs.GetComponent[physics.Body](manager, tileId)
 
 		// Carry out a broad phase to stop handling
 		// Minimize expensive physics on absurd tiles that will never collide with
@@ -56,7 +57,7 @@ func (world *World) UpdateTilePhysics(body *physics.Body, force *physics.Force, 
 	for _, data := range tileCollisionData {
 		tileId := data.TileId
 
-		tileBody := GetComponent[physics.Body](world, tileId)
+		tileBody := ecs.GetComponent[physics.Body](manager, tileId)
 
 		collision, velocityResolve, contactNormal := physics.DynamicVsBodyResolve(*body, *tileBody, force.Velocity)
 
@@ -71,26 +72,26 @@ func (world *World) UpdateTilePhysics(body *physics.Body, force *physics.Force, 
 }
 
 // Update all the entites with a body and force
-func (world *World) UpdatePhysics() {
+func UpdatePhysics(manager *ecs.Manager) {
 	// Get all the entities which have the body component and the force component
-	entities := GetEntities2[physics.Body, physics.Force](world)
+	entities := ecs.GetEntities2[physics.Body, physics.Force](manager)
 
 	// Get all tiles
-	tiles := GetEntities[TileTag](world)
+	tiles := ecs.GetEntities[TileTag](manager)
 
 	for _, id := range entities {
 		// Get the components
-		body := GetComponent[physics.Body](world, id)
-		force := GetComponent[physics.Force](world, id)
+		body := ecs.GetComponent[physics.Body](manager, id)
+		force := ecs.GetComponent[physics.Force](manager, id)
 
 		// Apply gravity
 		// Projectiles aren't affected
-		if !HasComponent[ProjectileTag](world, id) {
+		if !ecs.HasComponent[ProjectileTag](manager, id) {
 			force.UpdateGravity()
 		}
 
 		// Apply friction
-		if !HasComponent[ProjectileTag](world, id) {
+		if !ecs.HasComponent[ProjectileTag](manager, id) {
 			force.Friction()
 		}
 
@@ -100,7 +101,7 @@ func (world *World) UpdatePhysics() {
 
 		// Handle tile collisions
 		// This MUST be handled at the end AFTER acceleration has been applied
-		world.UpdateTilePhysics(body, force, tiles)
+		UpdateTilePhysics(manager, body, force, tiles)
 
 		// Update the body position
 		body.Position.X += force.Velocity.X

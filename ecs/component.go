@@ -8,16 +8,16 @@ import (
 )
 
 // Register a component with the component type
-func RegisterComponent[T any](world *World) {
+func RegisterComponent[T any](manager *Manager) {
 	// Create a slice for the component at the given index
 	componentSet := util.NewSparseSet[T]()
-	world.ComponentPool[util.GetType[T]()] = &componentSet
+	manager.ComponentPool[util.GetType[T]()] = &componentSet
 }
 
 // Get the address of the component slice
-func GetComponentSet[T any](world *World) *util.SparseSet[T] {
+func GetComponentSet[T any](manager *Manager) *util.SparseSet[T] {
 	// Get the address of the component slice
-	componentSetAddress, ok := world.ComponentPool[util.GetType[T]()].(*util.SparseSet[T])
+	componentSetAddress, ok := manager.ComponentPool[util.GetType[T]()].(*util.SparseSet[T])
 
 	if !ok {
 		message := fmt.Sprintf("Component type %v not found", util.GetType[T]())
@@ -28,8 +28,8 @@ func GetComponentSet[T any](world *World) *util.SparseSet[T] {
 }
 
 // Check if an entity has a component
-func HasComponent[T any](world *World, id int) bool {
-	componentSet := GetComponentSet[T](world)
+func HasComponent[T any](manager *Manager, id int) bool {
+	componentSet := GetComponentSet[T](manager)
 
 	_, ok := componentSet.Get(id)
 
@@ -38,12 +38,12 @@ func HasComponent[T any](world *World, id int) bool {
 }
 
 // Add a component to an entity
-func AddComponent[T any](world *World, id int) *T {
+func AddComponent[T any](manager *Manager, id int) *T {
 	// Get the component slice
-	componentSet := GetComponentSet[T](world)
+	componentSet := GetComponentSet[T](manager)
 
 	// If the entity already has the component, return the address of the component
-	if HasComponent[T](world, id) {
+	if HasComponent[T](manager, id) {
 		address, _ := componentSet.GetAddress(id)
 		return address
 	}
@@ -58,14 +58,14 @@ func AddComponent[T any](world *World, id int) *T {
 }
 
 // Remove a component from an entity
-func RemoveComponent[T any](world *World, id int) {
-	componentSet := GetComponentSet[T](world)
+func RemoveComponent[T any](manager *Manager, id int) {
+	componentSet := GetComponentSet[T](manager)
 	componentSet.Delete(id)
 }
 
 // Get the address of the component
-func GetComponent[T any](world *World, id int) *T {
-	componentSet := GetComponentSet[T](world)
+func GetComponent[T any](manager *Manager, id int) *T {
+	componentSet := GetComponentSet[T](manager)
 
 	address, ok := componentSet.GetAddress(id)
 
@@ -85,17 +85,17 @@ func GetComponent[T any](world *World, id int) *T {
 }
 
 // Returns a slice of entity ids which have component A
-func GetEntities[A any](world *World) []int {
+func GetEntities[A any](manager *Manager) []int {
 	entities := make([]int, 0)
 
-	for id := range world.Size {
+	for id := range manager.Size {
 		// Check that entity is alive
-		if !world.IsEntityAlive(id) {
+		if !manager.IsEntityAlive(id) {
 			continue
 		}
 
 		// Add to the slice if the entity has all the required components
-		if HasComponent[A](world, id) {
+		if HasComponent[A](manager, id) {
 			entities = append(entities, id)
 		}
 	}
@@ -104,17 +104,17 @@ func GetEntities[A any](world *World) []int {
 }
 
 // Returns a slice of entity ids which have component A and B
-func GetEntities2[A, B any](world *World) []int {
+func GetEntities2[A, B any](manager *Manager) []int {
 	entities := make([]int, 0)
 
-	for id := range world.Size {
+	for id := range manager.Size {
 		// Check that entity is alive
-		if !world.IsEntityAlive(id) {
+		if !manager.IsEntityAlive(id) {
 			continue
 		}
 
 		// Add to the slice if the entity has all the required components
-		if HasComponent[A](world, id) && HasComponent[B](world, id) {
+		if HasComponent[A](manager, id) && HasComponent[B](manager, id) {
 			entities = append(entities, id)
 		}
 	}

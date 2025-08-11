@@ -1,26 +1,27 @@
-package ecs
+package world
 
 import (
 	// Game packages
+	"github.com/plutial/game/ecs"
 	"github.com/plutial/game/gfx"
 	"github.com/plutial/game/physics"
 )
 
 type EnemyTag bool
 
-func (world *World) NewEnemy() {
-	id := world.NewEntity()
+func NewEnemy(manager *ecs.Manager) {
+	id := manager.NewEntity()
 
 	// Assign a player tag to mark the player entity
-	AddComponent[EnemyTag](world, id)
+	ecs.AddComponent[EnemyTag](manager, id)
 
 	// Add components
-	sprite := AddComponent[gfx.Sprite](world, id)
+	sprite := ecs.AddComponent[gfx.Sprite](manager, id)
 
 	*sprite = gfx.NewSprite(gfx.NewTexture("assets/res/image.png"))
 
 	// Body
-	body := AddComponent[physics.Body](world, id)
+	body := ecs.AddComponent[physics.Body](manager, id)
 
 	position := physics.NewVector2(50, 0)
 	size := physics.NewVector2(16, 16)
@@ -28,10 +29,10 @@ func (world *World) NewEnemy() {
 	*body = physics.NewBody(position, size)
 
 	// Force
-	force := AddComponent[physics.Force](world, id)
+	force := ecs.AddComponent[physics.Force](manager, id)
 
 	*force = physics.NewForce(physics.NewVector2(0, 0), physics.NewVector2(0, 0))
 
 	// Jump
-	AddComponent[physics.Jump](world, id)
+	ecs.AddComponent[physics.Jump](manager, id)
 }

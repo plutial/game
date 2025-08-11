@@ -1,52 +1,53 @@
-package ecs
+package world
 
 import (
 	"image/color"
 	"math"
 
 	// Game packages
+	"github.com/plutial/game/ecs"
 	"github.com/plutial/game/gfx"
 	"github.com/plutial/game/input"
 	"github.com/plutial/game/physics"
 )
 
 // Take in input and change it to movement
-func (world *World) UpdateMovement() {
+func UpdateMovement(manager *ecs.Manager) {
 	// Get the player id
-	playerId := GetEntities[PlayerTag](world)[0]
+	playerId := ecs.GetEntities[PlayerTag](manager)[0]
 
-	force := GetComponent[physics.Force](world, playerId)
+	force := ecs.GetComponent[physics.Force](manager, playerId)
 
 	// Horizontal movement
 	force.Move(input.IsKeyDown(input.KeyA), input.IsKeyDown(input.KeyD))
 	force.Dash(input.IsKeyDown(input.KeyA), input.IsKeyDown(input.KeyD), input.IsKeyPressed(input.KeySpace))
 
 	// Update jumps
-	jump := GetComponent[physics.Jump](world, playerId)
+	jump := ecs.GetComponent[physics.Jump](manager, playerId)
 
 	force.Jump(jump, input.IsKeyPressed(input.KeyW))
 }
 
-func (world *World) EntityAttack() {
+func EntityAttack(manager *ecs.Manager) {
 	// Dismiss if the player does not attack
 	if !input.IsMouseButtonPressed(input.MouseButtonLeft) {
 		return
 	}
 
 	// Get the player id
-	playerId := GetEntities[PlayerTag](world)[0]
+	playerId := ecs.GetEntities[PlayerTag](manager)[0]
 
-	playerBody := GetComponent[physics.Body](world, playerId)
+	playerBody := ecs.GetComponent[physics.Body](manager, playerId)
 
 	// Center of the player body
 	center := playerBody.Center()
 
 	// Get the enemies
-	enemies := GetEntities[EnemyTag](world)
+	enemies := ecs.GetEntities[EnemyTag](manager)
 
 	for _, enemyId := range enemies {
-		enemyBody := GetComponent[physics.Body](world, enemyId)
-		enemyForce := GetComponent[physics.Force](world, enemyId)
+		enemyBody := ecs.GetComponent[physics.Body](manager, enemyId)
+		enemyForce := ecs.GetComponent[physics.Force](manager, enemyId)
 
 		// Raycast an attack if the enemy is in range
 		if playerBody.Position.Distance(enemyBody.Position) < 80 {
@@ -58,10 +59,10 @@ func (world *World) EntityAttack() {
 			// Check if the ray is blocked by any of the tiles
 			blocked := false
 
-			tiles := GetEntities[TileTag](world)
+			tiles := ecs.GetEntities[TileTag](manager)
 
 			for _, tileId := range tiles {
-				tileBody := GetComponent[physics.Body](world, tileId)
+				tileBody := ecs.GetComponent[physics.Body](manager, tileId)
 
 				// Carry out a broad phase to stop handling
 				// Minimize expensive physics on absurd tiles that will never collide with
@@ -96,27 +97,27 @@ func (world *World) EntityAttack() {
 
 type ProjectileTag bool
 
-func (world *World) EntityCharge() {
+func EntityCharge(manager *ecs.Manager) {
 	if input.IsMouseButtonPressed(input.MouseButtonLeft) {
 		// Create a new charge projectile
-		id := world.NewEntity()
+		id := manager.NewEntity()
 
 		// Add a projectile tag so that it explodes when it collides with something
-		AddComponent[ProjectileTag](world, id)
+		ecs.AddComponent[ProjectileTag](manager, id)
 
 		// Get the player position
-		playerId := GetEntities[PlayerTag](world)[0]
+		playerId := ecs.GetEntities[PlayerTag](manager)[0]
 
-		playerBody := GetComponent[physics.Body](world, playerId)
+		playerBody := ecs.GetComponent[physics.Body](manager, playerId)
 
-		body := AddComponent[physics.Body](world, id)
+		body := ecs.AddComponent[physics.Body](manager, id)
 		*body = physics.NewBody(
 			playerBody.Center(),
 			physics.NewVector2(8, 8),
 		)
 
 		// Make the projectile go in the position of the mouse
-		force := AddComponent[physics.Force](world, id)
+		force := ecs.AddComponent[physics.Force](manager, id)
 
 		projectileSpeed := 1.5
 		center := body.Center()
@@ -132,7 +133,7 @@ func (world *World) EntityCharge() {
 		force.Acceleration.Y *= scaleFactor
 
 		// Add a sprite
-		sprite := AddComponent[gfx.Sprite](world, id)
+		sprite := ecs.AddComponent[gfx.Sprite](manager, id)
 		*sprite = gfx.NewSprite(gfx.NewTexture("assets/res/image.png"))
 		sprite.Image = nil
 		sprite.Color = color.RGBA{255, 255, 255, 255}
@@ -145,28 +146,28 @@ func (world *World) EntityCharge() {
 	}
 
 	// Get projectiles
-	projectiles := GetEntities[ProjectileTag](world)
+	projectiles := ecs.GetEntities[ProjectileTag](manager)
 
 	for _, id := range projectiles {
 		// Check to see if the projectile collided with anything
-		force := GetComponent[physics.Force](world, id)
+		force := ecs.GetComponent[physics.Force](manager, id)
 
 		// Boost the entities with an explosion
 		if force.Collisions.Collided() {
 			// Projectile body
-			body := GetComponent[physics.Body](world, id)
+			body := ecs.GetComponent[physics.Body](manager, id)
 
 			// Entities which have a body and a velocity
-			entities := GetEntities2[physics.Body, physics.Force](world)
+			entities := ecs.GetEntities2[physics.Body, physics.Force](manager)
 
 			for _, id := range entities {
 				// The explosion does not affect projectiles
-				if HasComponent[ProjectileTag](world, id) {
+				if ecs.HasComponent[ProjectileTag](manager, id) {
 					continue
 				}
 
-				entityBody := GetComponent[physics.Body](world, id)
-				entityForce := GetComponent[physics.Force](world, id)
+				entityBody := ecs.GetComponent[physics.Body](manager, id)
+				entityForce := ecs.GetComponent[physics.Force](manager, id)
 
 				explosion := physics.NewVector2(5, 6.5)
 				// If the entity is in range
@@ -189,7 +190,7 @@ func (world *World) EntityCharge() {
 			}
 
 			// Remove the projectile
-			world.DeleteEntity(id)
+			manager.DeleteEntity(id)
 		}
 	}
 }

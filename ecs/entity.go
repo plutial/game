@@ -4,8 +4,8 @@ package ecs
 type Alive bool
 
 // Check if an entity is alive
-func (world *World) IsEntityAlive(id int) bool {
-	componentSet := *GetComponentSet[Alive](world)
+func (manager *Manager) IsEntityAlive(id int) bool {
+	componentSet := *GetComponentSet[Alive](manager)
 
 	_, ok := componentSet.Get(id)
 
@@ -13,12 +13,12 @@ func (world *World) IsEntityAlive(id int) bool {
 }
 
 // Create an entity
-func (world *World) NewEntity() int {
-	for id := range world.Size {
+func (manager *Manager) NewEntity() int {
+	for id := range manager.Size {
 		// If the entity is not alive, assign the new entity id
-		if !world.IsEntityAlive(id) {
+		if !manager.IsEntityAlive(id) {
 			// Check the entity is now alive
-			componentSet := GetComponentSet[Alive](world)
+			componentSet := GetComponentSet[Alive](manager)
 			componentSet.Add(id, true)
 
 			return id
@@ -26,25 +26,25 @@ func (world *World) NewEntity() int {
 	}
 
 	// If every entity that currently exists is alive, add a new entity position
-	id := world.Size
+	id := manager.Size
 
 	// Check the entity is now alive
-	componentSet := GetComponentSet[Alive](world)
+	componentSet := GetComponentSet[Alive](manager)
 	componentSet.Add(id, true)
 
 	// Increase the number of entities
-	world.Size++
+	manager.Size++
 
 	return id
 }
 
 // Delete an entity
-func (world *World) DeleteEntity(id int) {
+func (manager *Manager) DeleteEntity(id int) {
 	// Check that the entity is alive before adding it to the delete table
-	if !world.IsEntityAlive(id) {
+	if !manager.IsEntityAlive(id) {
 		return
 	}
 
 	// Add the entity to the list to remove
-	world.ToDelete = append(world.ToDelete, id)
+	manager.ToDelete = append(manager.ToDelete, id)
 }

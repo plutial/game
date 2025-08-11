@@ -1,4 +1,4 @@
-package ecs
+package world
 
 import (
 	"encoding/json"
@@ -6,6 +6,7 @@ import (
 	"log"
 
 	// Game packages
+	"github.com/plutial/game/ecs"
 	"github.com/plutial/game/gfx"
 	"github.com/plutial/game/physics"
 )
@@ -30,7 +31,7 @@ type TileLayerData struct {
 
 type TileTag bool
 
-func (world *World) LoadMap(path string) {
+func LoadMap(manager *ecs.Manager, path string) {
 	// Open the json file
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -56,13 +57,13 @@ func (world *World) LoadMap(path string) {
 			}
 
 			// Create an entity
-			id := world.NewEntity()
+			id := manager.NewEntity()
 
 			// Add the tile tag
-			AddComponent[TileTag](world, id)
+			ecs.AddComponent[TileTag](manager, id)
 
 			// Create the sprite component
-			sprite := AddComponent[gfx.Sprite](world, id)
+			sprite := ecs.AddComponent[gfx.Sprite](manager, id)
 
 			*sprite = gfx.NewSprite(tileTexture)
 
@@ -82,7 +83,7 @@ func (world *World) LoadMap(path string) {
 			sprite.Destination.Size = physics.NewVector2(16, 16)
 
 			// Create the physics body
-			body := AddComponent[physics.Body](world, id)
+			body := ecs.AddComponent[physics.Body](manager, id)
 
 			position := physics.NewVector2(float64(x)*16, float64(y)*16)
 			size := physics.NewVector2(16, 16)
