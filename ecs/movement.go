@@ -2,6 +2,7 @@ package ecs
 
 import (
 	"image/color"
+	"math"
 
 	// Game packages
 	"github.com/plutial/game/gfx"
@@ -119,6 +120,8 @@ func (world *World) EntityCharge() {
 
 		projectileSpeed := 1.5
 		center := body.Center()
+		center.X -= body.Size.X / 2
+		center.Y -= body.Size.Y / 2
 		center.X += force.Acceleration.X
 		center.Y += force.Acceleration.Y
 		scaleFactor := projectileSpeed / center.Distance(input.MousePosition())
@@ -133,6 +136,12 @@ func (world *World) EntityCharge() {
 		*sprite = gfx.NewSprite(gfx.NewTexture("assets/res/image.png"))
 		sprite.Image = nil
 		sprite.Color = color.RGBA{255, 255, 255, 255}
+		sprite.Destination.Size = physics.NewVector2(8, 8)
+
+		// The rotation
+		// The vertical acceleration is equal to the length opposite side
+		// The horizontal acceleration is to the length adjacent side
+		sprite.Rotation = math.Atan(force.Acceleration.Y / force.Acceleration.X)
 	}
 
 	// Get projectiles
@@ -162,6 +171,8 @@ func (world *World) EntityCharge() {
 				explosion := physics.NewVector2(5, 6.5)
 				// If the entity is in range
 				center := body.Center()
+				center.X -= body.Size.X / 2
+				center.Y -= body.Size.Y / 2
 				if center.Distance(entityBody.Center()) < 32 {
 					if body.Center().X-entityBody.Center().X > 0 {
 						entityForce.Acceleration.X -= explosion.X

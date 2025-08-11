@@ -9,7 +9,7 @@ type Jump struct {
 	Jumps int
 }
 
-func (force *Force) Move(moveLeft bool, moveRight bool) {
+func (force *Force) Friction() {
 	// Slow the entities down with friction
 	if force.Acceleration.X < 0 {
 		// Slow the entity down until its acceleration is 0
@@ -20,7 +20,9 @@ func (force *Force) Move(moveLeft bool, moveRight bool) {
 		force.Acceleration.X -= 0.6
 		force.Acceleration.X = max(0, force.Acceleration.X)
 	}
+}
 
+func (force *Force) Move(moveLeft bool, moveRight bool) {
 	// Move the entity
 	if moveLeft {
 		// Add the momemtum

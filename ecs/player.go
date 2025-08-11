@@ -25,7 +25,7 @@ func (world *World) NewPlayer() {
 	// Body
 	body := AddComponent[physics.Body](world, id)
 
-	position := physics.NewVector2(0, 0)
+	position := physics.NewVector2(16, 16)
 	size := physics.NewVector2(16, 16)
 
 	*body = physics.NewBody(position, size)

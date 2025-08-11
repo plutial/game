@@ -17,6 +17,9 @@ type Sprite struct {
 	// The color the sprite will render with if the texture is nil
 	Color color.RGBA
 
+	// The rotation of the sprite in radians
+	Rotation float64
+
 	// The source co-ordinates and size
 	Source physics.Body
 
@@ -32,6 +35,9 @@ func NewSprite(texture *ebiten.Image) Sprite {
 
 	// Set the color (white)
 	sprite.Color = color.RGBA{255, 255, 255, 255}
+
+	// Set the rotation in radians
+	sprite.Rotation = 0
 
 	// Set the default position and size values
 	// The sizes will be the size of the image
@@ -56,10 +62,10 @@ func NewSprite(texture *ebiten.Image) Sprite {
 func (sprite *Sprite) Render() {
 	// If there is no texture, render a colored rectangle
 	if sprite.Image == nil {
-		RenderRectangle(sprite.Color, sprite.Destination)
+		RenderRectangle(sprite.Color, sprite.Destination, sprite.Rotation)
 	} else {
 		// Draw the rectangle with the texture
-		RenderTexture(sprite.Image, sprite.Source, sprite.Destination)
+		RenderTexture(sprite.Image, sprite.Source, sprite.Destination, sprite.Rotation)
 	}
 }
 

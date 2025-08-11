@@ -36,24 +36,32 @@ func NewTexture(path string) *ebiten.Image {
 	return texture
 }
 
-func RenderRectangle(color color.RGBA, destionationBody physics.Body) {
+func RenderRectangle(color color.RGBA, destinationBody physics.Body, rotation float64) {
 	// Options provided by Ebitengine for drawing
+	// The order is important for all scales and transformations!
 	options := &ebiten.DrawImageOptions{}
 
 	// Apply the position and the size
 	// Assuming that the original is a 1x1 rectangle
-	// The order is important!
-	options.GeoM.Scale(destionationBody.Size.X, destionationBody.Size.Y)
-	options.GeoM.Translate(destionationBody.Position.X, destionationBody.Position.Y)
+	options.GeoM.Scale(destinationBody.Size.X, destinationBody.Size.Y)
+	options.GeoM.Translate(destinationBody.Position.X, destinationBody.Position.Y)
 
-	// Scale the destination rectangle to fit window size
-	/*scale := physics.NewVector2(float64(rl.GetScreenWidth())/800, float64(rl.GetScreenHeight())/450)
+	// Rotating the image
+	// Don't rotate for the angles which are multiples of 360 as rotations are computationally expensive
+	if int(rotation)%360 != 0 {
+		// Get the center of the image
+		center := destinationBody.Center()
 
-	destination.X *= scale.X
-	destination.Width *= scale.X
+		// Translate to the center of the image
+		options.GeoM.Translate(-center.X, -center.Y)
 
-	destination.Y *= scale.Y
-	destination.Height *= scale.Y*/
+		// Rotate around the center
+		// The unit for the rotation is in radians
+		options.GeoM.Rotate(rotation)
+
+		// Translate back to the screen position
+		options.GeoM.Translate(center.X, center.Y)
+	}
 
 	// Draw the rectangle with the said color
 	coloredTexture := ebiten.NewImage(1, 1)
@@ -64,16 +72,8 @@ func RenderRectangle(color color.RGBA, destionationBody physics.Body) {
 
 func RenderTexture(texture *ebiten.Image,
 	sourceBody, destinationBody physics.Body,
+	rotation float64,
 ) {
-	// Scale the destination rectangle to window size
-	/*scale := physics.NewVector2(float32(rl.GetScreenWidth())/800, float32(rl.GetScreenHeight())/450)
-
-	destination.X *= scale.X
-	destination.Width *= scale.X
-
-	destination.Y *= scale.Y
-	destination.Height *= scale.Y*/
-
 	// Crop the texture
 	sourceRectangle := image.Rect(
 		int(sourceBody.Position.X), int(sourceBody.Position.Y),
@@ -83,17 +83,34 @@ func RenderTexture(texture *ebiten.Image,
 
 	subImage := texture.SubImage(sourceRectangle).(*ebiten.Image)
 
-	// Apply the destination body
-	// Assuming that the dimensions of the image are the same as the cropped image
-	// The order is important!
+	// Options provided by Ebitengine for drawing
+	// The order is important for all scales and transformations!
 	options := &ebiten.DrawImageOptions{}
+
+	// Apply the position and the size
+	// The division shrinks the image to a 1x1 rectanlge
 	options.GeoM.Scale(
 		destinationBody.Size.X/sourceBody.Size.X,
 		destinationBody.Size.Y/sourceBody.Size.Y,
 	)
-	options.GeoM.Translate(
-		destinationBody.Position.X, destinationBody.Position.Y,
-	)
+	options.GeoM.Translate(destinationBody.Position.X, destinationBody.Position.Y)
+
+	// Rotating the image
+	// Don't rotate for the angles which are multiples of 360 as rotations are computationally expensive
+	if int(rotation)%360 != 0 {
+		// Get the center of the image
+		center := destinationBody.Center()
+
+		// Translate to the center of the image
+		options.GeoM.Translate(-center.X, -center.Y)
+
+		// Rotate around the center
+		// The unit for the rotation is in radians
+		options.GeoM.Rotate(rotation)
+
+		// Translate back to the screen position
+		options.GeoM.Translate(center.X, center.Y)
+	}
 
 	// Render the image
 	screen.DrawImage(subImage, options)

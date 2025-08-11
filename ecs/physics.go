@@ -89,6 +89,11 @@ func (world *World) UpdatePhysics() {
 			force.UpdateGravity()
 		}
 
+		// Apply friction
+		if !HasComponent[ProjectileTag](world, id) {
+			force.Friction()
+		}
+
 		// Update acceleration
 		force.Velocity.X += force.Acceleration.X
 		force.Velocity.Y += force.Acceleration.Y
