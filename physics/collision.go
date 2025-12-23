@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"sort"
 )
 
 const (
@@ -158,7 +159,20 @@ func (body Body) CollidesWithVector(start Vector2f, movementVector Vector2f) (bo
 		} else {
 			// Return the co+ordinate vector with the lowest magnitude
 			// i.e. the first collision
-			return collision, collisionPoints[minimumMagnitudeIndex], collisionTypes[minimumMagnitudeIndex]
+			var collisionPoint Vector2f
+			collisionType := collisionTypes[minimumMagnitudeIndex]
+
+			// Important: move the body with movementVector, not the collisionPoints
+			// The collisionPoints are there to handle collision, not movement
+			switch collisionType {
+			case CollisionLeft, CollisionRight:
+				collisionPoint = NewVector2f(collisionPoints[minimumMagnitudeIndex].X, movementVector.Y)
+			case CollisionTop, CollisionBottom:
+				collisionPoint = NewVector2f(movementVector.X, collisionPoints[minimumMagnitudeIndex].Y)
+				fmt.Println("Point: ", collisionPoint)
+			}
+
+			return collision, collisionPoint, collisionType
 		}
 	}
 }
@@ -204,6 +218,74 @@ func (bodyA Body) CollidesWithDynamicBody(bodyB Body, velocity Vector2f) (bool, 
 
 	// Test for collision
 	return bodyExpanded.CollidesWithVector(start, velocity)
+}
+
+// Resolves collsions between bodies
+func (bodyA Body) CollidiesWithDynamicBodies(bodies []Body, force *Force) {
+	// Slice to store data about body collisions
+	type CollisionData struct {
+		// Position of the body in the bodies slice
+		Index int
+
+		// Magnitude of the resultant vector
+		Magnitude float64
+	}
+
+	collisionData := make([]CollisionData, 0)
+
+	// Check which tiles could collided with the body
+	for i, bodyB := range bodies {
+		// Carry out a broad phase to stop handling
+		// Minimize expensive physics on absurd tiles that will never collide with
+		collision := bodyA.BroadPhase(bodyB, force.Velocity)
+
+		if collision {
+			// Check for collision
+			collision, resolvedVelocity, _ := bodyA.CollidesWithDynamicBody(bodyB, force.Velocity)
+
+			if collision {
+				// Get the distance from the body to the tile
+				data := CollisionData{i, resolvedVelocity.Magnitude()}
+
+				// Add to the collided tile list
+				collisionData = append(collisionData, data)
+			}
+		}
+	}
+
+	// Sort the tiles by which vector required the least movement
+	// This is a fix to imitate actual physics (and to handle other cases and exceptions)
+	sort.SliceStable(collisionData, func(a, b int) bool {
+		return collisionData[a].Magnitude < collisionData[b].Magnitude
+	})
+
+	// Reset the collisions
+	force.Collisions = Collisions{}
+
+	// Resolve the collisions
+	for _, data := range collisionData {
+		collision, velocityResolve, collisionType := bodyA.CollidesWithDynamicBody(bodies[data.Index], force.Velocity)
+
+		if collision {
+			// Update the collision velocity
+			force.Velocity = velocityResolve
+			fmt.Println(velocityResolve)
+
+			// Update the collision direction
+			switch collisionType {
+			case CollisionLeft:
+				force.Collisions.Update(NewVector2f(1, 0))
+			case CollisionRight:
+				force.Collisions.Update(NewVector2f(-1, 0))
+			case CollisionTop:
+				force.Collisions.Update(NewVector2f(0, -1))
+			case CollisionBottom:
+				force.Collisions.Update(NewVector2f(0, 1))
+			default:
+				force.Collisions.Update(NewVector2f(0, 0))
+			}
+		}
+	}
 }
 
 // Returns true, if the broad phase body collided with another body

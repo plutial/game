@@ -1,6 +1,7 @@
 package physics
 
 import (
+	"fmt"
 	"math"
 )
 
@@ -41,6 +42,13 @@ func NewForce(velocity, acceleration Vector2f) Force {
 // Rounding
 func Round(x, unit float64) float64 {
 	return math.Round(x/unit) * unit
+}
+
+// Pretty formatting
+func (collisions Collisions) String() string {
+	return fmt.Sprintf("Left\tRight\tTop\tBottom\t\n%v\t%v\t%v\t%v\t",
+		collisions.Left, collisions.Right, collisions.Up, collisions.Down,
+	)
 }
 
 // Update the collisions
