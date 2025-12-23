@@ -58,6 +58,20 @@ func NewGame(width, height int, title string) Game {
 	// Create the player
 	world.NewPlayer(&game.Manager)
 
+	bodyA := physics.NewBody(
+		physics.NewVector2f(50, 300),
+		physics.NewVector2f(16, 16),
+	)
+
+	bodyB := physics.NewBody(
+		physics.NewVector2f(50, 320),
+		physics.NewVector2f(16, 16),
+	)
+
+	velocity := physics.NewVector2f(0, 5)
+
+	fmt.Println(bodyA.CollidesWithDynamicBody(bodyB, velocity))
+
 	return game
 }
 

@@ -23,7 +23,7 @@ func (body Body) CollidesWithVector(start Vector2f, movementVector Vector2f) (bo
 	}
 
 	// Set all positions relative to the vector starting from the origin
-	body.Position = NewVector2f(body.Position.X+start.X, body.Position.Y+start.Y)
+	body.Position = NewVector2f(body.Position.X-start.X, body.Position.Y-start.Y)
 
 	// Check if the line collides with any of the body's edges
 	// All of the co+ordinates where the collisions happen can be easily translated into movement vectors
@@ -128,13 +128,13 @@ func (body Body) CollidesWithVector(start Vector2f, movementVector Vector2f) (bo
 		for i, point := range collisionPoints {
 			magnitude := point.Magnitude()
 
-			// If the magnitude is greater than the vector, than the vector cannot reach that co+ordinate
-			if magnitude < movementMagnitude {
-				// The collision happens, if its magnitude is less than the vector
+			// If the magnitude is greater than the vector, than the vector cannot reach that co-ordinate
+			if magnitude <= movementMagnitude {
+				// The collision happens, if its magnitude is less than or equal to the vector
 				collision = true
 
 				// Find the lowest magnitude
-				if magnitude < minimumMagnitude {
+				if magnitude <= minimumMagnitude {
 					minimumMagnitude = magnitude
 					minimumMagnitudeIndex = i
 				}
@@ -146,8 +146,7 @@ func (body Body) CollidesWithVector(start Vector2f, movementVector Vector2f) (bo
 			return collision, movementVector, CollisionNone
 		} else if minimumMagnitudeIndex < 0 {
 			// Some other error or exception
-			errorMessage := fmt.Sprintf(`Error: could not evaluate correct collision point
-				for vector: (%v, %v), and body: Position (%v, %v), Size (%v, %v).\n`,
+			errorMessage := fmt.Sprintf("Error: could not evaluate correct collision point for vector: (%v, %v), and body: Position (%v, %v), Size (%v, %v).\n",
 				movementVector.X, movementVector.Y,
 				body.Position.X, body.Position.Y,
 				body.Size.X, body.Size.Y,
@@ -219,45 +218,4 @@ func (bodyA Body) BroadPhase(bodyB Body, velocity Vector2f) bool {
 	bodyBroadPhase.Size.Y = bodyA.Size.Y + math.Abs(velocity.Y)
 
 	return bodyBroadPhase.CollidesWithStaticBody(bodyB)
-}
-
-func (bodyA Body) DynamicVsBody(bodyB Body, velocity Vector2f) (collision bool, hitTime float64, contactNormal Vector2f) {
-	// If the body didn't move, it's not worth it to test for collision
-	if velocity.X == 0 && velocity.Y == 0 {
-		return false, 1.0, NewVector2f(0, 0)
-	}
-
-	// Calculate the start of the ray
-	start := bodyA.Center()
-
-	// Create an expanded body to test the ray against
-	var bodyExpanded Body
-	bodyExpanded.Position.X = bodyB.Position.X - bodyA.Size.X/2
-	bodyExpanded.Position.Y = bodyB.Position.Y - bodyA.Size.Y/2
-
-	bodyExpanded.Size.X = bodyA.Size.X + bodyB.Size.X
-	bodyExpanded.Size.Y = bodyA.Size.Y + bodyB.Size.Y
-
-	// Test for collision
-	collision, hitTime, contactNormal = bodyExpanded.VsRay(start, velocity)
-
-	return collision && hitTime >= 0 && hitTime < 1, hitTime, contactNormal
-}
-
-func DynamicVsBodyResolve(bodyA, bodyB Body, velocity Vector2f) (collision bool, velocityResolve Vector2f, contactNormal Vector2f) {
-	collision, hitTime, contactNormal := bodyA.DynamicVsBody(bodyB, velocity)
-
-	// Handle collision
-	if collision {
-		velocity.X += contactNormal.X * math.Abs(velocity.X*(1-hitTime))
-		velocity.Y += contactNormal.Y * math.Abs(velocity.Y*(1-hitTime))
-	}
-
-	velocityResolve = velocity
-
-	return collision, velocityResolve, contactNormal
-}
-
-func (body Body) VsBodiesResolve(bodies []Body, velocity Vector2f) (velocityResolve, contactNormal Vector2f) {
-	return velocity, NewVector2f(0, 0)
 }

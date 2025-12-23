@@ -12,8 +12,11 @@ import (
 func UpdateTilePhysics(manager *ecs.Manager, body *physics.Body, force *physics.Force, tiles []int) {
 	// Slice to store tiles which have collided
 	type TileCollisionData struct {
-		TileId   int
-		Distance float64
+		// ID of the tile
+		TileId int
+
+		// Magnitude of the resultant vector
+		Magnitude float64
 	}
 
 	tileCollisionData := make([]TileCollisionData, 0)
@@ -26,28 +29,24 @@ func UpdateTilePhysics(manager *ecs.Manager, body *physics.Body, force *physics.
 		// Minimize expensive physics on absurd tiles that will never collide with
 		collision := body.BroadPhase(*tileBody, force.Velocity)
 
-		if !collision {
-			continue
-		}
-
-		// Check for collision
-		collision, _, _ = body.DynamicVsBody(*tileBody, force.Velocity)
-
 		if collision {
-			// Get the distance from the body to the tile
-			distance := body.Position.Distance(tileBody.Position)
+			// Check for collision
+			collision, resolvedVelocity, _ := body.CollidesWithDynamicBody(*tileBody, force.Velocity)
 
-			data := TileCollisionData{tileId, distance}
+			if collision {
+				// Get the distance from the body to the tile
+				data := TileCollisionData{tileId, resolvedVelocity.Magnitude()}
 
-			// Add to the collided tile list
-			tileCollisionData = append(tileCollisionData, data)
+				// Add to the collided tile list
+				tileCollisionData = append(tileCollisionData, data)
+			}
 		}
 	}
 
 	// Sort the tiles by which tiles are the closest to the body
 	// This is a fix to imitate actual physics (and to handle other cases)
 	sort.SliceStable(tileCollisionData, func(a, b int) bool {
-		return tileCollisionData[a].Distance < tileCollisionData[b].Distance
+		return tileCollisionData[a].Magnitude < tileCollisionData[b].Magnitude
 	})
 
 	// Reset the collisions
@@ -59,14 +58,25 @@ func UpdateTilePhysics(manager *ecs.Manager, body *physics.Body, force *physics.
 
 		tileBody := ecs.GetComponent[physics.Body](manager, tileId)
 
-		collision, velocityResolve, contactNormal := physics.DynamicVsBodyResolve(*body, *tileBody, force.Velocity)
+		collision, velocityResolve, collisionType := body.CollidesWithDynamicBody(*tileBody, force.Velocity)
 
 		if collision {
 			// Update the collision velocity
 			force.Velocity = velocityResolve
 
 			// Update the collision direction
-			force.Collisions.Update(contactNormal)
+			switch collisionType {
+			case physics.CollisionLeft:
+				force.Collisions.Update(physics.NewVector2f(1, 0))
+			case physics.CollisionRight:
+				force.Collisions.Update(physics.NewVector2f(-1, 0))
+			case physics.CollisionTop:
+				force.Collisions.Update(physics.NewVector2f(0, 1))
+			case physics.CollisionBottom:
+				force.Collisions.Update(physics.NewVector2f(0, -1))
+			default:
+				force.Collisions.Update(physics.NewVector2f(0, 0))
+			}
 		}
 	}
 }

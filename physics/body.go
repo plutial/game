@@ -26,5 +26,5 @@ func (body Body) Center() Vector2f {
 
 // Pretty formatting
 func (body Body) String() string {
-	return fmt.Sprintf("%f\t%f\t\n%f\t%f\t", body.Position.X, body.Position.Y, body.Size.X, body.Size.Y)
+	return fmt.Sprintf("%f\t%f\t%f\t%f\t", body.Position.X, body.Position.Y, body.Size.X, body.Size.Y)
 }
