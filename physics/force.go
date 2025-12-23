@@ -4,15 +4,6 @@ import (
 	"math"
 )
 
-// Stores an x and a y
-type Vector2 struct {
-	X, Y float64
-}
-
-func NewVector2(x, y float64) Vector2 {
-	return Vector2{x, y}
-}
-
 // Collisions are going to be inside force
 type Collisions struct {
 	Left, Right, Up, Down bool
@@ -21,10 +12,10 @@ type Collisions struct {
 // Movement and collisions
 type Force struct {
 	// Instantaneous movement
-	Velocity Vector2
+	Velocity Vector2f
 
 	// Persisting momentum
-	Acceleration Vector2
+	Acceleration Vector2f
 
 	// Maximum horizontal speed
 	Speed float64
@@ -33,7 +24,8 @@ type Force struct {
 	Collisions Collisions
 }
 
-func NewForce(velocity, acceleration Vector2) Force {
+// Creates a new force
+func NewForce(velocity, acceleration Vector2f) Force {
 	force := Force{}
 
 	force.Velocity = velocity
@@ -46,18 +38,13 @@ func NewForce(velocity, acceleration Vector2) Force {
 	return force
 }
 
-// Just pythagoras
-func (a *Vector2) Distance(b Vector2) float64 {
-	return math.Sqrt(math.Pow(a.X-b.X, 2) + math.Pow(a.Y-b.Y, 2))
-}
-
 // Rounding
 func Round(x, unit float64) float64 {
 	return math.Round(x/unit) * unit
 }
 
 // Update the collisions
-func (collisions *Collisions) Update(contactNormal Vector2) {
+func (collisions *Collisions) Update(contactNormal Vector2f) {
 	if contactNormal.X == 1 {
 		collisions.Left = true
 	} else if contactNormal.X == -1 {

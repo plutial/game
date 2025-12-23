@@ -51,7 +51,7 @@ func EntityAttack(manager *ecs.Manager) {
 
 		// Raycast an attack if the enemy is in range
 		if playerBody.Position.Distance(enemyBody.Position) < 80 {
-			movement := physics.NewVector2(
+			movement := physics.NewVector2f(
 				enemyBody.Center().X-playerBody.Center().X,
 				enemyBody.Center().Y-playerBody.Center().Y,
 			)
@@ -113,7 +113,7 @@ func EntityCharge(manager *ecs.Manager) {
 		body := ecs.AddComponent[physics.Body](manager, id)
 		*body = physics.NewBody(
 			playerBody.Center(),
-			physics.NewVector2(8, 8),
+			physics.NewVector2f(8, 8),
 		)
 
 		// Make the projectile go in the position of the mouse
@@ -137,7 +137,7 @@ func EntityCharge(manager *ecs.Manager) {
 		*sprite = gfx.NewSprite(gfx.NewTexture("assets/res/image.png"))
 		sprite.Image = nil
 		sprite.Color = color.RGBA{255, 255, 255, 255}
-		sprite.Destination.Size = physics.NewVector2(8, 8)
+		sprite.Destination.Size = physics.NewVector2f(8, 8)
 
 		// The rotation
 		// The vertical acceleration is equal to the length opposite side
@@ -169,7 +169,7 @@ func EntityCharge(manager *ecs.Manager) {
 				entityBody := ecs.GetComponent[physics.Body](manager, id)
 				entityForce := ecs.GetComponent[physics.Force](manager, id)
 
-				explosion := physics.NewVector2(5, 6.5)
+				explosion := physics.NewVector2f(5, 6.5)
 				// If the entity is in range
 				center := body.Center()
 				center.X -= body.Size.X / 2

@@ -165,7 +165,7 @@ func IsMouseButtonDown(mouseButton int) bool {
 	return ebiten.IsMouseButtonPressed(ebiten.MouseButton(mouseButton))
 }
 
-func MousePosition() physics.Vector2 {
+func MousePosition() physics.Vector2f {
 	x, y := ebiten.CursorPosition()
-	return physics.NewVector2(float64(x), float64(y))
+	return physics.NewVector2f(float64(x), float64(y))
 }

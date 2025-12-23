@@ -68,7 +68,7 @@ func LoadMap(manager *ecs.Manager, path string) {
 			*sprite = gfx.NewSprite(tileTexture)
 
 			// Source rectangle
-			textureSize := physics.NewVector2(
+			textureSize := physics.NewVector2f(
 				float64(tileTexture.Bounds().Dx()),
 				float64(tileTexture.Bounds().Dy()),
 			)
@@ -76,17 +76,17 @@ func LoadMap(manager *ecs.Manager, path string) {
 			sprite.Source.Position.X = float64((tileSourceId-1)%int(int(textureSize.X)/16)) * 16
 			sprite.Source.Position.Y = float64((tileSourceId-1)/int(int(textureSize.Y)/16)) * 16
 
-			sprite.Source.Size = physics.NewVector2(16, 16)
+			sprite.Source.Size = physics.NewVector2f(16, 16)
 
 			// Destination rectangle
-			sprite.Destination.Position = physics.NewVector2(float64(x)*16, float64(y)*16)
-			sprite.Destination.Size = physics.NewVector2(16, 16)
+			sprite.Destination.Position = physics.NewVector2f(float64(x)*16, float64(y)*16)
+			sprite.Destination.Size = physics.NewVector2f(16, 16)
 
 			// Create the physics body
 			body := ecs.AddComponent[physics.Body](manager, id)
 
-			position := physics.NewVector2(float64(x)*16, float64(y)*16)
-			size := physics.NewVector2(16, 16)
+			position := physics.NewVector2f(float64(x)*16, float64(y)*16)
+			size := physics.NewVector2f(16, 16)
 
 			*body = physics.NewBody(position, size)
 		}

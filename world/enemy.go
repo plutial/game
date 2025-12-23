@@ -23,15 +23,15 @@ func NewEnemy(manager *ecs.Manager) {
 	// Body
 	body := ecs.AddComponent[physics.Body](manager, id)
 
-	position := physics.NewVector2(50, 0)
-	size := physics.NewVector2(16, 16)
+	position := physics.NewVector2f(50, 0)
+	size := physics.NewVector2f(16, 16)
 
 	*body = physics.NewBody(position, size)
 
 	// Force
 	force := ecs.AddComponent[physics.Force](manager, id)
 
-	*force = physics.NewForce(physics.NewVector2(0, 0), physics.NewVector2(0, 0))
+	*force = physics.NewForce(physics.NewVector2f(0, 0), physics.NewVector2f(0, 0))
 
 	// Jump
 	ecs.AddComponent[physics.Jump](manager, id)

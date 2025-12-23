@@ -42,15 +42,15 @@ func NewSprite(texture *ebiten.Image) Sprite {
 	// Set the default position and size values
 	// The sizes will be the size of the image
 	sprite.Source = physics.NewBody(
-		physics.NewVector2(0, 0),
-		physics.NewVector2(
+		physics.NewVector2f(0, 0),
+		physics.NewVector2f(
 			float64(sprite.Image.Bounds().Dx()),
 			float64(sprite.Image.Bounds().Dy()),
 		),
 	)
 	sprite.Destination = physics.NewBody(
-		physics.NewVector2(0, 0),
-		physics.NewVector2(
+		physics.NewVector2f(0, 0),
+		physics.NewVector2f(
 			float64(sprite.Image.Bounds().Dx()),
 			float64(sprite.Image.Bounds().Dy()),
 		),
